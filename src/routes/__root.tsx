@@ -3,12 +3,14 @@ import {
   Outlet,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { useDB, initStore } from "../lib/store";
+import { initStore, retry, setRoute, useStore } from "../lib/store";
+import CreateSchool from "../pages/CreateSchool";
 import { Toaster } from "../components/toast";
 import { ShieldIcon } from "../components/brand";
 import NotFound from "../pages/NotFound";
@@ -98,13 +100,25 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const db = useDB();
+  const st = useStore();
+  const { pathname } = useLocation();
+  useEffect(() => { setRoute(pathname); }, [pathname]);
   useEffect(() => { initStore(); }, []);
+  const onApp = pathname === "/app" || pathname.startsWith("/app/");
 
   return (
     <QueryClientProvider client={queryClient}>
-      {db ? (
+      {st.status === "ready" && st.db ? (
         <Outlet />
+      ) : st.status === "onboard" && onApp ? (
+        <CreateSchool />
+      ) : st.status === "error" ? (
+        <div className="grid min-h-screen place-content-center justify-items-center gap-3 px-4 text-center">
+          <span className="grid h-[30px] w-[30px] place-items-center rounded-[7px] bg-brand"><ShieldIcon /></span>
+          <p className="font-semibold">Sahmati can't reach its servers right now.</p>
+          <p className="max-w-[360px] text-[13px] text-muted-2">Check your internet connection. Your school's records are safe; nothing was lost.</p>
+          <button className="btn btn-primary" onClick={() => retry()}>Try again</button>
+        </div>
       ) : (
         <div className="grid min-h-screen place-content-center justify-items-center gap-3">
           <span className="grid h-[30px] w-[30px] place-items-center rounded-[7px] bg-brand"><ShieldIcon /></span>

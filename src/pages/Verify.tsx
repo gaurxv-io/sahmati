@@ -2,20 +2,23 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { AlertTriangle, Check } from "lucide-react";
 import { Logo } from "@/components/brand";
-import { useDB, verifyLedger } from "@/lib/store";
+import { checkReceipt } from "@/lib/store";
 import { clsLabel, fmtTime } from "@/lib/derive";
 
 /** Public receipt check: anyone (a parent, the Board, an auditor) can confirm a consent is on record and untampered. */
 export default function Verify() {
   const { receipt = "" } = useParams({ strict: false }) as { receipt?: string };
-  const db = useDB()!;
   const nav = useNavigate();
   const [input, setInput] = useState(receipt);
-  const [chainOk, setChainOk] = useState<boolean | null>(null);
-  const student = receipt ? Object.values(db.students).find((s) => s.receipt?.toUpperCase() === receipt.replace(/^#/, "").toUpperCase()) : undefined;
-  const event = student && db.events.filter((e) => e.sid === student.id && ["consent", "update", "withdraw"].includes(e.type)).pop();
-
-  useEffect(() => { if (student) verifyLedger(db.events).then((r) => setChainOk(r.ok)); }, [db.events, student]);
+  const [found, setFound] = useState<Awaited<ReturnType<typeof checkReceipt>> | undefined>(undefined);
+  useEffect(() => {
+    setFound(undefined);
+    if (receipt) checkReceipt(receipt).then(setFound, () => setFound(null));
+  }, [receipt]);
+  const student = found?.student;
+  const event = found?.event;
+  const chainOk = found ? found.chainOk : null;
+  const db = { school: { name: found?.school ?? "" } };
   const go = (e: FormEvent) => { e.preventDefault(); if (input.trim()) nav({ to: "/verify/$receipt", params: { receipt: encodeURIComponent(input.trim().replace(/^#/, "")) } }); };
 
   return (
@@ -32,7 +35,7 @@ export default function Verify() {
           <button className="btn btn-primary min-h-11" type="submit">Check</button>
         </form>
 
-        {receipt && !student && (
+        {receipt && found === null && (
           <div className="flex items-start gap-2.5 rounded-xl border border-[#F5C2BC] bg-danger-soft px-4 py-3 text-[13px] text-danger"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />No consent with receipt #{receipt} is on record. Check the number on the parent's confirmation.</div>
         )}
 
