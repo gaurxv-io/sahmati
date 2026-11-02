@@ -7,6 +7,7 @@ import { actions, useDB } from "@/lib/store";
 import { BANDS, band, can, clsLabel, maskPhone, olderNotice, shortDate, sortedStudents, stats, waHref } from "@/lib/derive";
 import type { ConsentStatus, Lang } from "@/lib/types";
 import { PageHead } from "./Layout";
+import { LANGS, isLang } from "@/lib/i18n";
 
 type Filter = "all" | ConsentStatus;
 type SP = { status?: string; remind?: string; import?: string; drive?: string };
@@ -48,7 +49,7 @@ export default function Students() {
     const rows = lines.flatMap((l) => {
       const c = l.split(",").map((x) => x.trim());
       if (c.length < 5 || !/^\d{10}$/.test(c[4])) { skipped++; return []; }
-      return [{ name: c[0], cls: c[1], sec: c[2] || "A", parent: c[3], phone: c[4], lang: ((c[5] || "en").toLowerCase() === "hi" ? "hi" : "en") as Lang }];
+      return [{ name: c[0], cls: c[1], sec: c[2] || "A", parent: c[3], phone: c[4], lang: (isLang((c[5] || "en").toLowerCase()) ? (c[5] || "en").toLowerCase() : "en") as Lang }];
     });
     if (!rows.length) { toast("No valid rows. Check the column order and 10-digit mobile numbers."); return; }
     await actions.importStudents(rows);
@@ -102,7 +103,7 @@ export default function Students() {
           <div className="max-h-[300px] overflow-auto border-t border-line">
             {pending.map((s) => (
               <div key={s.id} className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line px-[18px] py-2.5 text-[13px] last:border-b-0">
-                <span><b className="font-semibold">{s.parent}</b> <span className="text-muted-2">for {s.name} · {clsLabel(s)}</span><br /><span className="font-mono text-[11.5px] text-muted-2">{maskPhone(s.phone)} · {s.lang === "hi" ? "HINDI" : "ENGLISH"}</span></span>
+                <span><b className="font-semibold">{s.parent}</b> <span className="text-muted-2">for {s.name} · {clsLabel(s)}</span><br /><span className="font-mono text-[11.5px] text-muted-2">{maskPhone(s.phone)} · {(LANGS[s.lang]?.name ?? "English").toUpperCase()}</span></span>
                 <a className="btn btn-sm" target="_blank" rel="noopener" href={waHref(db, s, true)}><MessageCircle className="h-3.5 w-3.5" />WhatsApp</a>
               </div>
             ))}

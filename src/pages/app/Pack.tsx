@@ -7,6 +7,7 @@ import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
 import { can, fmtDate, packLink } from "@/lib/derive";
 import { copyText } from "@/lib/clipboard";
+import { MSG, fill } from "@/lib/i18n";
 
 export default function Pack() {
   const { sid } = useParams({ from: "/app/students_/$sid/pack" });
@@ -21,9 +22,7 @@ export default function Pack() {
 
   const now = new Date().toISOString();
   const packs = db.packs.filter((p) => p.sid === sid);
-  const waText = (url: string) => s.lang === "hi"
-    ? `नमस्ते ${s.parent} जी, ${db.school.name} ने ${s.name} के डेटा की जानकारी तैयार की है। यह निजी लिंक 7 दिन तक खुला रहेगा: ${url}`
-    : `Namaste ${s.parent}, ${db.school.name} has prepared ${s.name}'s data pack as you asked. This private link works for 7 days: ${url}`;
+  const waText = (url: string) => fill((MSG[s.lang] ?? MSG.en).pack, { parent: s.parent, school: db.school.name, student: s.name, link: url });
   const wa = (url: string) => `https://wa.me/91${s.phone}?text=${encodeURIComponent(waText(url))}`;
 
   const share = async () => {

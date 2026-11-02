@@ -1,5 +1,6 @@
 import { Crest, Pill } from "@/components/brand";
 import { clsLabel, fmtDate, fmtTime, maskPhone } from "@/lib/derive";
+import { LANGS } from "@/lib/i18n";
 import type { LedgerEvent, ParentRequest, Student, Vendor } from "@/lib/types";
 
 const REQ = { access: "See my child's data", correct: "Correct my child's data", delete: "Delete my child's data" } as const;
@@ -40,7 +41,7 @@ export default function PackView({ school, student: s, events, requests, vendors
             <dt className="text-muted-2">Class</dt><dd>{clsLabel(s)}</dd>
             <dt className="text-muted-2">Parent</dt><dd>{s.parent}</dd>
             <dt className="text-muted-2">Mobile</dt><dd className="font-mono text-xs">{maskPhone(s.phone)}</dd>
-            <dt className="text-muted-2">Language</dt><dd>{s.lang === "hi" ? "Hindi" : "English"}</dd>
+            <dt className="text-muted-2">Language</dt><dd>{LANGS[s.lang]?.name ?? "English"}</dd>
           </dl>
         </div>
         <div className="panel p-[18px]">
