@@ -10,6 +10,6 @@ export const Route = createFileRoute("/app/breach")({
       { property: "og:description", content: "72-hour data breach response in your school's Sahmati console." },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>): { new?: string | undefined } => ({ new: s["new"] != null ? String(s["new"]) : undefined }),
+  validateSearch: (s: Record<string, unknown>): { new?: number | undefined } => ({ new: s["new"] != null && s["new"] !== "" ? 1 : undefined }),
   component: Page,
 });

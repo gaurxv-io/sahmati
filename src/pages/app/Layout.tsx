@@ -64,7 +64,7 @@ export default function AppLayout() {
           <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-7">
             <div className="flex items-center gap-2 text-[13px] text-muted-2"><span className="hidden sm:inline">{db.school.name}</span><span className="hidden sm:inline">/</span><b className="font-semibold text-ink">{title}</b></div>
             <span className="ml-auto hidden items-center gap-2 rounded-full sm:inline-flex border border-line bg-white px-2.5 py-1 font-mono text-[11px] text-muted-2"><span className="h-1.5 w-1.5 rounded-full bg-muted-3" />Sample school · demo data</span>
-            <button className="btn btn-danger btn-sm" onClick={() => nav({ to: "/app/breach", search: { new: "1" } })}><AlertTriangle className="h-3.5 w-3.5" />Report a data breach</button>
+            <button className="btn btn-danger btn-sm" onClick={() => nav({ to: "/app/breach", search: { new: 1 } })}><AlertTriangle className="h-3.5 w-3.5" />Report a data breach</button>
             <button className="btn btn-ghost btn-sm" onClick={async () => { await actions.reset(); toast("Demo data reset"); }}>Reset demo</button>
           </div>
         </div>

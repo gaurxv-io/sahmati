@@ -89,7 +89,7 @@ export default function Breach() {
   return (
     <>
       <PageHead n="07" label="Breaches" title="Data breach response" desc="If student data leaks, the Board and affected parents must be told, with a detailed report within 72 hours. Every step is logged in the consent ledger.">
-        {!showForm && <button className="btn btn-danger" onClick={() => navigate({ search: { new: "1" } })}><AlertTriangle className="h-4 w-4" />Report a data breach</button>}
+        {!showForm && <button className="btn btn-danger" onClick={() => navigate({ search: { new: 1 } })}><AlertTriangle className="h-4 w-4" />Report a data breach</button>}
       </PageHead>
 
       {showForm && (
