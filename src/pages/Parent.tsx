@@ -7,8 +7,8 @@ import { clsLabel, fmtTime, maskPhone } from "@/lib/derive";
 import type { Lang, RequestType } from "@/lib/types";
 
 const T = {
-  en: { step: "01 · Parent consent", title: "Consent for your child's data", keeps: "What the school keeps", keepsV: "Name, class, photo, address, parent contact, marks, attendance and medical notes.", why: "Why", whyV: "Teaching, report cards, school transport, and contacting you in an emergency.", notice: "Read the full privacy notice", choices: "Your choices", rec: "Education and school records", web: "Photos on school website and social media", news: "Event photos in the school newsletter", required: "REQUIRED", optional: "OPTIONAL", verify: "Verify it's you", sentTo: "6-digit code sent to", sendCode: "Send code to", demo: "Prototype: no SMS is sent. Your code is", give: "Give consent · free", update: "Save changes", bad: "That code doesn't match. Check the code and try again.", recorded: "Consent recorded", copy: "A copy has been sent to your WhatsApp.", receipt: "Receipt", student: "Student", by: "Given by", time: "Time", verified: "Verified", noticeV: "Notice", yes: "YES", no: "NO", change: "Change or withdraw", ask: "Ask about my child's data", reqType: "What do you need?", access: "See my child's data", correct: "Correct something", del: "Delete something", note: "Details (optional)", sendReq: "Send request", sentReq: "Request sent. The school will reply within 7 days.", proof: "Proof", check: "Check this receipt", free: "Consent is always free. Change or withdraw it anytime from this same link.", invalid: "This consent link isn't valid. Ask the school office to send a fresh link." },
-  hi: { step: "01 · अभिभावक सहमति", title: "आपके बच्चे के डेटा के लिए सहमति", keeps: "स्कूल क्या रखता है", keepsV: "नाम, कक्षा, फ़ोटो, पता, अभिभावक संपर्क, अंक, उपस्थिति और स्वास्थ्य संबंधी जानकारी।", why: "क्यों", whyV: "पढ़ाई, रिपोर्ट कार्ड, स्कूल बस, और आपात स्थिति में आपसे संपर्क के लिए।", notice: "पूरी गोपनीयता सूचना पढ़ें", choices: "आपकी पसंद", rec: "शिक्षा और स्कूल रिकॉर्ड", web: "स्कूल वेबसाइट और सोशल मीडिया पर फ़ोटो", news: "स्कूल न्यूज़लेटर में कार्यक्रम की फ़ोटो", required: "ज़रूरी", optional: "वैकल्पिक", verify: "पुष्टि करें कि यह आप हैं", sentTo: "6 अंकों का कोड भेजा गया", sendCode: "कोड भेजें", demo: "प्रोटोटाइप: कोई SMS नहीं भेजा जाता। आपका कोड है", give: "सहमति दें · मुफ़्त", update: "बदलाव सहेजें", bad: "कोड मेल नहीं खाता। फिर से देखें।", recorded: "सहमति दर्ज हो गई", copy: "इसकी कॉपी आपके WhatsApp पर भेज दी गई है।", receipt: "रसीद", student: "छात्र", by: "सहमति दी", time: "समय", verified: "पुष्टि", noticeV: "सूचना", yes: "हाँ", no: "नहीं", change: "बदलें या वापस लें", ask: "बच्चे के डेटा के बारे में पूछें", reqType: "आपको क्या चाहिए?", access: "बच्चे का डेटा देखना", correct: "कुछ सुधारना", del: "कुछ हटाना", note: "विवरण (वैकल्पिक)", sendReq: "अनुरोध भेजें", sentReq: "अनुरोध भेज दिया गया। स्कूल 7 दिनों में जवाब देगा।", proof: "प्रमाण", check: "रसीद जाँचें", free: "सहमति हमेशा मुफ़्त है। इसी लिंक से कभी भी बदलें या वापस लें।", invalid: "यह लिंक मान्य नहीं है। स्कूल से नया लिंक माँगें।" },
+  en: { step: "01 · Parent consent", title: "Consent for your child's data", keeps: "What the school keeps", keepsV: "Name, class, photo, address, parent contact, marks, attendance and medical notes.", why: "Why", whyV: "Teaching, report cards, school transport, and contacting you in an emergency.", notice: "Read the full privacy notice", choices: "Your choices", rec: "Education and school records", web: "Photos on school website and social media", news: "Event photos in the school newsletter", required: "REQUIRED", optional: "OPTIONAL", verify: "Verify it's you", sentTo: "6-digit code sent to", sendCode: "Send code to", demo: "Prototype: no SMS is sent. Your code is", give: "Give consent · free", update: "Save changes", bad: "That code doesn't match. Check the code and try again.", locked: "Too many wrong tries. This code no longer works. Request a new code.", expired: "This code has expired. Request a new code.", rate: "Too many codes requested. Try again in an hour.", sms: "We couldn't send the SMS. Try again in a minute.", newCode: "Request a new code", recorded: "Consent recorded", copy: "A copy has been sent to your WhatsApp.", receipt: "Receipt", student: "Student", by: "Given by", time: "Time", verified: "Verified", noticeV: "Notice", yes: "YES", no: "NO", change: "Change or withdraw", ask: "Ask about my child's data", reqType: "What do you need?", access: "See my child's data", correct: "Correct something", del: "Delete something", note: "Details (optional)", sendReq: "Send request", sentReq: "Request sent. The school will reply within 7 days.", proof: "Proof", check: "Check this receipt", free: "Consent is always free. Change or withdraw it anytime from this same link.", invalid: "This consent link isn't valid. Ask the school office to send a fresh link." },
+  hi: { step: "01 · अभिभावक सहमति", title: "आपके बच्चे के डेटा के लिए सहमति", keeps: "स्कूल क्या रखता है", keepsV: "नाम, कक्षा, फ़ोटो, पता, अभिभावक संपर्क, अंक, उपस्थिति और स्वास्थ्य संबंधी जानकारी।", why: "क्यों", whyV: "पढ़ाई, रिपोर्ट कार्ड, स्कूल बस, और आपात स्थिति में आपसे संपर्क के लिए।", notice: "पूरी गोपनीयता सूचना पढ़ें", choices: "आपकी पसंद", rec: "शिक्षा और स्कूल रिकॉर्ड", web: "स्कूल वेबसाइट और सोशल मीडिया पर फ़ोटो", news: "स्कूल न्यूज़लेटर में कार्यक्रम की फ़ोटो", required: "ज़रूरी", optional: "वैकल्पिक", verify: "पुष्टि करें कि यह आप हैं", sentTo: "6 अंकों का कोड भेजा गया", sendCode: "कोड भेजें", demo: "प्रोटोटाइप: कोई SMS नहीं भेजा जाता। आपका कोड है", give: "सहमति दें · मुफ़्त", update: "बदलाव सहेजें", bad: "कोड मेल नहीं खाता। फिर से देखें।", locked: "बहुत बार गलत कोड डाला गया। यह कोड अब काम नहीं करेगा। नया कोड मँगाएँ।", expired: "इस कोड की समय-सीमा खत्म हो गई है। नया कोड मँगाएँ।", rate: "बहुत ज़्यादा कोड मँगाए गए। एक घंटे बाद फिर कोशिश करें।", sms: "SMS नहीं भेजा जा सका। एक मिनट बाद फिर कोशिश करें।", newCode: "नया कोड मँगाएँ", recorded: "सहमति दर्ज हो गई", copy: "इसकी कॉपी आपके WhatsApp पर भेज दी गई है।", receipt: "रसीद", student: "छात्र", by: "सहमति दी", time: "समय", verified: "पुष्टि", noticeV: "सूचना", yes: "हाँ", no: "नहीं", change: "बदलें या वापस लें", ask: "बच्चे के डेटा के बारे में पूछें", reqType: "आपको क्या चाहिए?", access: "बच्चे का डेटा देखना", correct: "कुछ सुधारना", del: "कुछ हटाना", note: "विवरण (वैकल्पिक)", sendReq: "अनुरोध भेजें", sentReq: "अनुरोध भेज दिया गया। स्कूल 7 दिनों में जवाब देगा।", proof: "प्रमाण", check: "रसीद जाँचें", free: "सहमति हमेशा मुफ़्त है। इसी लिंक से कभी भी बदलें या वापस लें।", invalid: "यह लिंक मान्य नहीं है। स्कूल से नया लिंक माँगें।" },
 };
 
 export default function Parent() {
@@ -22,6 +22,14 @@ export default function Parent() {
   const [code, setCode] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
   const [err, setErr] = useState("");
+  const [dead, setDead] = useState(false);
+  const requestCode = async () => {
+    setErr(""); setDead(false); setOtp("");
+    try {
+      const r = await actions.sendCode(sid);
+      if (r.ok) setCode(r.code ?? ""); else setErr(r.error === "rate" ? t.rate : r.error === "sms" ? t.sms : t.invalid);
+    } catch { setErr(t.sms); }
+  };
   const [asking, setAsking] = useState(false);
   const [reqType, setReqType] = useState<RequestType>("access");
   const [reqNote, setReqNote] = useState("");
@@ -52,9 +60,12 @@ export default function Parent() {
   const yn = (v: boolean) => <span className={`font-mono text-xs ${v ? "text-green" : "text-muted-2"}`}>{v ? t.yes : t.no}</span>;
 
   const submit = async () => {
-    if (otp.trim() !== code) { setErr(t.bad); return; }
-    await actions.giveConsent(sid, { records: true, web, newsletter: news });
-    setEditing(false); setCode(null); setOtp(""); setErr(""); window.scrollTo(0, 0);
+    const r = await actions.giveConsent(sid, { records: true, web, newsletter: news }, otp.trim());
+    if (!r.ok) {
+      if (r.error === "bad") { setErr(t.bad); return; }
+      setErr(r.error === "expired" ? t.expired : t.locked); setDead(true); return;
+    }
+    setEditing(false); setCode(null); setOtp(""); setErr(""); setDead(false); window.scrollTo(0, 0);
   };
 
   return (
@@ -118,16 +129,19 @@ export default function Parent() {
             </div>
             <div className="grid gap-2">
               <div className="flex items-center justify-between text-[15px] font-semibold">{t.verify}<span className="font-mono text-[11px] font-normal text-muted-2">03</span></div>
-              {code ? (
+              {code !== null ? (
                 <>
                   <div className="text-[13px] text-muted-2">{t.sentTo} <span className="font-mono text-ink-2">{maskPhone(s.phone)}</span></div>
-                  <div className="flex items-center gap-2 rounded-lg border border-dashed border-line-2 bg-subtle px-3 py-2.5 text-[13px] text-ink-2">{t.demo} <b className="font-mono tracking-[0.15em] text-ink">{code}</b></div>
+                  {code && <div className="flex items-center gap-2 rounded-lg border border-dashed border-line-2 bg-subtle px-3 py-2.5 text-[13px] text-ink-2">{t.demo} <b className="font-mono tracking-[0.15em] text-ink">{code}</b></div>}
                   <input id="otp" aria-label="6-digit code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="– – – – – –" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} className="field min-h-[52px] w-full text-center font-mono text-xl tracking-[0.45em]" />
                   {err && <p className="text-[13px] text-danger">{err}</p>}
-                  <button className="btn btn-primary btn-lg w-full text-base" onClick={submit}>{editing ? t.update : t.give}</button>
+                  {dead ? <button className="btn btn-lg w-full text-base" onClick={requestCode}>{t.newCode}</button> : <button className="btn btn-primary btn-lg w-full text-base" onClick={submit}>{editing ? t.update : t.give}</button>}
                 </>
               ) : (
-                <button className="btn btn-primary btn-lg w-full text-base" onClick={() => setCode(String(Math.floor(100000 + Math.random() * 900000)))}>{t.sendCode} {maskPhone(s.phone)}</button>
+                <>
+                  {err && <p className="text-[13px] text-danger">{err}</p>}
+                  <button className="btn btn-primary btn-lg w-full text-base" onClick={requestCode}>{t.sendCode} {maskPhone(s.phone)}</button>
+                </>
               )}
             </div>
           </>

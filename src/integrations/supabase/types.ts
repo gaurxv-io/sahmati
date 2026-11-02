@@ -156,6 +156,47 @@ export type Database = {
           },
         ]
       }
+      otp_codes: {
+        Row: {
+          attempts: number
+          code_hash: string
+          created_at: string
+          expires_at: string
+          id: string
+          sid: string
+          used_at: string | null
+          void: boolean
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          sid: string
+          used_at?: string | null
+          void?: boolean
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          sid?: string
+          used_at?: string | null
+          void?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "otp_codes_sid_fkey"
+            columns: ["sid"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       requests: {
         Row: {
           created_at: string
@@ -434,23 +475,13 @@ export type Database = {
         Returns: string
       }
       give_consent: {
-        Args: { _newsletter: boolean; _sid: string; _web: boolean }
-        Returns: {
-          detail: string
-          hash: string
-          prev: string
-          school_id: string
-          seq: number
-          sid: string
-          ts: string
-          type: string
+        Args: {
+          _code: string
+          _newsletter: boolean
+          _sid: string
+          _web: boolean
         }
-        SetofOptions: {
-          from: "*"
-          to: "ledger"
-          isOneToOne: true
-          isSetofReturn: false
-        }
+        Returns: Json
       }
       has_role: {
         Args: {
@@ -464,6 +495,11 @@ export type Database = {
         Returns: number
       }
       iso_now: { Args: never; Returns: string }
+      otp_hash: { Args: { _code: string; _sid: string }; Returns: string }
+      otp_issue: {
+        Args: { _hash: string; _sid: string; _ttl_seconds?: number }
+        Returns: Json
+      }
       parent_request: {
         Args: { _note: string; _sid: string; _type: string }
         Returns: undefined

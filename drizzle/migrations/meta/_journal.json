@@ -15,6 +15,13 @@
       "when": 1793645126275,
       "tag": "0001_tighten_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793645533645,
+      "tag": "0002_parent_otp",
+      "breakpoints": true
     }
   ]
 }
