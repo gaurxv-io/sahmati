@@ -14,16 +14,21 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppAccessLogRouteImport } from './routes/app.access-log'
 import { Route as AppBreachRouteImport } from './routes/app.breach'
 import { Route as AppLedgerRouteImport } from './routes/app.ledger'
 import { Route as AppReportRouteImport } from './routes/app.report'
 import { Route as AppRequestsRouteImport } from './routes/app.requests'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppStudentsRouteImport } from './routes/app.students'
+import { Route as AppTeamRouteImport } from './routes/app.team'
 import { Route as AppVendorsRouteImport } from './routes/app.vendors'
 import { Route as CSidRouteImport } from './routes/c.$sid'
+import { Route as PTokenRouteImport } from './routes/p.$token'
+import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as VerifyIndexRouteImport } from './routes/verify.index'
 import { Route as VerifyReceiptRouteImport } from './routes/verify.$receipt'
+import { Route as AppStudentsSidPackRouteImport } from './routes/app.students_.$sid.pack'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -48,6 +53,11 @@ const LoginRoute = LoginRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAccessLogRoute = AppAccessLogRouteImport.update({
+  id: '/access-log',
+  path: '/access-log',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBreachRoute = AppBreachRouteImport.update({
@@ -80,6 +90,11 @@ const AppStudentsRoute = AppStudentsRouteImport.update({
   path: '/students',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTeamRoute = AppTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppVendorsRoute = AppVendorsRouteImport.update({
   id: '/vendors',
   path: '/vendors',
@@ -88,6 +103,16 @@ const AppVendorsRoute = AppVendorsRouteImport.update({
 const CSidRoute = CSidRouteImport.update({
   id: '/c/$sid',
   path: '/c/$sid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PTokenRoute = PTokenRouteImport.update({
+  id: '/p/$token',
+  path: '/p/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SSlugRoute = SSlugRouteImport.update({
+  id: '/s/$slug',
+  path: '/s/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyIndexRoute = VerifyIndexRouteImport.update({
@@ -100,39 +125,54 @@ const VerifyReceiptRoute = VerifyReceiptRouteImport.update({
   path: '/verify/$receipt',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppStudentsSidPackRoute = AppStudentsSidPackRouteImport.update({
+  id: '/students_/$sid/pack',
+  path: '/students/$sid/pack',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/audit': typeof AuditRoute
   '/login': typeof LoginRoute
+  '/app/access-log': typeof AppAccessLogRoute
   '/app/breach': typeof AppBreachRoute
   '/app/ledger': typeof AppLedgerRoute
   '/app/report': typeof AppReportRoute
   '/app/requests': typeof AppRequestsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRoute
+  '/app/team': typeof AppTeamRoute
   '/app/vendors': typeof AppVendorsRoute
   '/c/$sid': typeof CSidRoute
+  '/p/$token': typeof PTokenRoute
+  '/s/$slug': typeof SSlugRoute
   '/verify/$receipt': typeof VerifyReceiptRoute
   '/app/': typeof AppIndexRoute
   '/verify/': typeof VerifyIndexRoute
+  '/app/students/$sid/pack': typeof AppStudentsSidPackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/login': typeof LoginRoute
+  '/app/access-log': typeof AppAccessLogRoute
   '/app/breach': typeof AppBreachRoute
   '/app/ledger': typeof AppLedgerRoute
   '/app/report': typeof AppReportRoute
   '/app/requests': typeof AppRequestsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRoute
+  '/app/team': typeof AppTeamRoute
   '/app/vendors': typeof AppVendorsRoute
   '/c/$sid': typeof CSidRoute
+  '/p/$token': typeof PTokenRoute
+  '/s/$slug': typeof SSlugRoute
   '/verify/$receipt': typeof VerifyReceiptRoute
   '/app': typeof AppIndexRoute
   '/verify': typeof VerifyIndexRoute
+  '/app/students/$sid/pack': typeof AppStudentsSidPackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,17 +180,22 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/audit': typeof AuditRoute
   '/login': typeof LoginRoute
+  '/app/access-log': typeof AppAccessLogRoute
   '/app/breach': typeof AppBreachRoute
   '/app/ledger': typeof AppLedgerRoute
   '/app/report': typeof AppReportRoute
   '/app/requests': typeof AppRequestsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRoute
+  '/app/team': typeof AppTeamRoute
   '/app/vendors': typeof AppVendorsRoute
   '/c/$sid': typeof CSidRoute
+  '/p/$token': typeof PTokenRoute
+  '/s/$slug': typeof SSlugRoute
   '/verify/$receipt': typeof VerifyReceiptRoute
   '/app/': typeof AppIndexRoute
   '/verify/': typeof VerifyIndexRoute
+  '/app/students_/$sid/pack': typeof AppStudentsSidPackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -159,50 +204,65 @@ export interface FileRouteTypes {
     | '/app'
     | '/audit'
     | '/login'
+    | '/app/access-log'
     | '/app/breach'
     | '/app/ledger'
     | '/app/report'
     | '/app/requests'
     | '/app/settings'
     | '/app/students'
+    | '/app/team'
     | '/app/vendors'
     | '/c/$sid'
+    | '/p/$token'
+    | '/s/$slug'
     | '/verify/$receipt'
     | '/app/'
     | '/verify/'
+    | '/app/students/$sid/pack'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/audit'
     | '/login'
+    | '/app/access-log'
     | '/app/breach'
     | '/app/ledger'
     | '/app/report'
     | '/app/requests'
     | '/app/settings'
     | '/app/students'
+    | '/app/team'
     | '/app/vendors'
     | '/c/$sid'
+    | '/p/$token'
+    | '/s/$slug'
     | '/verify/$receipt'
     | '/app'
     | '/verify'
+    | '/app/students/$sid/pack'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/audit'
     | '/login'
+    | '/app/access-log'
     | '/app/breach'
     | '/app/ledger'
     | '/app/report'
     | '/app/requests'
     | '/app/settings'
     | '/app/students'
+    | '/app/team'
     | '/app/vendors'
     | '/c/$sid'
+    | '/p/$token'
+    | '/s/$slug'
     | '/verify/$receipt'
     | '/app/'
     | '/verify/'
+    | '/app/students_/$sid/pack'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -211,6 +271,8 @@ export interface RootRouteChildren {
   AuditRoute: typeof AuditRoute
   LoginRoute: typeof LoginRoute
   CSidRoute: typeof CSidRoute
+  PTokenRoute: typeof PTokenRoute
+  SSlugRoute: typeof SSlugRoute
   VerifyReceiptRoute: typeof VerifyReceiptRoute
   VerifyIndexRoute: typeof VerifyIndexRoute
 }
@@ -250,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/access-log': {
+      id: '/app/access-log'
+      path: '/access-log'
+      fullPath: '/app/access-log'
+      preLoaderRoute: typeof AppAccessLogRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/breach': {
@@ -294,6 +363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStudentsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/team': {
+      id: '/app/team'
+      path: '/team'
+      fullPath: '/app/team'
+      preLoaderRoute: typeof AppTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/vendors': {
       id: '/app/vendors'
       path: '/vendors'
@@ -306,6 +382,20 @@ declare module '@tanstack/react-router' {
       path: '/c/$sid'
       fullPath: '/c/$sid'
       preLoaderRoute: typeof CSidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$token': {
+      id: '/p/$token'
+      path: '/p/$token'
+      fullPath: '/p/$token'
+      preLoaderRoute: typeof PTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$slug': {
+      id: '/s/$slug'
+      path: '/s/$slug'
+      fullPath: '/s/$slug'
+      preLoaderRoute: typeof SSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify/': {
@@ -322,29 +412,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyReceiptRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/students_/$sid/pack': {
+      id: '/app/students_/$sid/pack'
+      path: '/students/$sid/pack'
+      fullPath: '/app/students/$sid/pack'
+      preLoaderRoute: typeof AppStudentsSidPackRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAccessLogRoute: typeof AppAccessLogRoute
   AppBreachRoute: typeof AppBreachRoute
   AppLedgerRoute: typeof AppLedgerRoute
   AppReportRoute: typeof AppReportRoute
   AppRequestsRoute: typeof AppRequestsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudentsRoute: typeof AppStudentsRoute
+  AppTeamRoute: typeof AppTeamRoute
   AppVendorsRoute: typeof AppVendorsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppStudentsSidPackRoute: typeof AppStudentsSidPackRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAccessLogRoute: AppAccessLogRoute,
   AppBreachRoute: AppBreachRoute,
   AppLedgerRoute: AppLedgerRoute,
   AppReportRoute: AppReportRoute,
   AppRequestsRoute: AppRequestsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudentsRoute: AppStudentsRoute,
+  AppTeamRoute: AppTeamRoute,
   AppVendorsRoute: AppVendorsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppStudentsSidPackRoute: AppStudentsSidPackRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -355,6 +458,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuditRoute: AuditRoute,
   LoginRoute: LoginRoute,
   CSidRoute: CSidRoute,
+  PTokenRoute: PTokenRoute,
+  SSlugRoute: SSlugRoute,
   VerifyReceiptRoute: VerifyReceiptRoute,
   VerifyIndexRoute: VerifyIndexRoute,
 }

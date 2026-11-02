@@ -64,9 +64,8 @@ export default function Landing() {
           <div className="flex flex-wrap gap-3">
             <a href="#audit" className="btn btn-primary btn-lg">Book a free DPDP audit</a>
             <Link to="/app" className="btn btn-lg">Try the live demo <ArrowRight className="h-4 w-4" /></Link>
-            <Link to="/audit" className="btn btn-ghost btn-lg">Take the 5-minute self-audit</Link>
           </div>
-          <p className="font-mono text-[11px] text-muted-2">Free for schools in year 1 · Consent always free for parents · Data stored in India</p>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1"><Link to="/audit" className="text-sm font-semibold text-green hover:underline">Take the 5-minute self-audit</Link><span className="font-mono text-[11px] text-muted-2">Free for schools in year 1 · Consent always free for parents · Data stored in India</span></p>
           <a href={GAZETTE} target="_blank" rel="noopener" className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold underline underline-offset-2">Official DPDP Rules 2025 (Gazette, MeitY) <ExternalLink className="h-3.5 w-3.5" /></a>
         </div>
 

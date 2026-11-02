@@ -1,7 +1,7 @@
 import { Download, Printer } from "lucide-react";
 import { Pill, Seal } from "@/components/brand";
-import { useDB } from "@/lib/store";
-import { SLA_DAYS, daysLeft, fmtTime, stats } from "@/lib/derive";
+import { actions, useDB } from "@/lib/store";
+import { SLA_DAYS, can, daysLeft, fmtTime, stats } from "@/lib/derive";
 import { PageHead } from "./Layout";
 import { downloadText, ledgerCsv } from "./Ledger";
 
@@ -12,7 +12,7 @@ export default function Report() {
   return (
     <>
       <PageHead n="05" label="Compliance report" title="Report for the Board, trustees or any parent">
-        <button className="btn" onClick={() => downloadText("sahmati-consent-ledger.csv", ledgerCsv(db))}><Download className="h-4 w-4" />Ledger CSV</button>
+        {can(db).export && <button className="btn" onClick={() => { downloadText("sahmati-consent-ledger.csv", ledgerCsv(db)); actions.logAccess("export", "-", "Exported consent ledger CSV"); }}><Download className="h-4 w-4" />Ledger CSV</button>}
         <button className="btn btn-primary" onClick={() => window.print()}><Printer className="h-4 w-4" />Print or save PDF</button>
       </PageHead>
       <article id="report" className="grid max-w-[840px] gap-7 rounded-xl border border-line-2 bg-white p-6 shadow-card sm:p-12 print:border-0 print:shadow-none">

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AlertTriangle, Check, Download, ShieldCheck } from "lucide-react";
 import { toast } from "@/components/toast";
 import { actions, useDB, verifyLedger } from "@/lib/store";
-import { clsLabel, fmtTime } from "@/lib/derive";
+import { can, clsLabel, fmtTime } from "@/lib/derive";
 import { PageHead } from "./Layout";
 
 export function ledgerCsv(db: ReturnType<typeof useDB>) {
@@ -25,7 +25,7 @@ export default function Ledger() {
   return (
     <>
       <PageHead n="04" label="Consent ledger" title="Every consent, on the record" desc="Records are only ever added, never edited. Each one stores a SHA-256 hash of itself and the record before it, so changing any past record breaks the chain and shows up on verification.">
-        <button className="btn" onClick={() => downloadText("sahmati-consent-ledger.csv", ledgerCsv(db))}><Download className="h-4 w-4" />Export CSV</button>
+        {can(db).export && <button className="btn" onClick={() => { downloadText("sahmati-consent-ledger.csv", ledgerCsv(db)); actions.logAccess("export", "-", "Exported consent ledger CSV"); }}><Download className="h-4 w-4" />Export CSV</button>}
         <button className="btn" onClick={async () => { const seq = await actions.tamper(); setResult(null); toast(`Record #${seq} edited behind Sahmati's back. Run Verify chain.`); }}><AlertTriangle className="h-4 w-4" />Simulate tampering</button>
         <button className="btn btn-primary" onClick={verify}><ShieldCheck className="h-4 w-4" />Verify chain</button>
       </PageHead>

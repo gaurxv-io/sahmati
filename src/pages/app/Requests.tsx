@@ -1,4 +1,5 @@
-import { Check } from "lucide-react";
+import { Check, FileText } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Pill } from "@/components/brand";
 import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
@@ -23,7 +24,7 @@ export default function Requests() {
                 <p className="text-ink-2">{r.note || "No details added."}</p>
                 <p className="mt-2 font-mono text-[11.5px] uppercase text-muted-2">{s?.parent} · {s?.name} · received {fmtDate(r.createdAt)}{r.status === "open" && ` · reply by ${fmtDate(dueDate(r))}`}</p>
               </div>
-              {r.status === "open" && <button className="btn btn-sm" onClick={async () => { await actions.resolveRequest(r.id); toast("Request marked resolved"); }}><Check className="h-3.5 w-3.5" />Mark resolved</button>}
+              {r.status === "open" && <div className="flex flex-col items-end gap-1.5">{r.type === "access" && <Link className="btn btn-primary btn-sm" to="/app/students/$sid/pack" params={{ sid: r.sid }}><FileText className="h-3.5 w-3.5" />Prepare data pack</Link>}<button className="btn btn-sm" onClick={async () => { await actions.resolveRequest(r.id); toast("Request marked resolved"); }}><Check className="h-3.5 w-3.5" />Mark resolved</button></div>}
             </div>
           );
         })}
