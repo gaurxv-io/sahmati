@@ -9,27 +9,292 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppLedgerRouteImport } from './routes/app.ledger'
+import { Route as AppReportRouteImport } from './routes/app.report'
+import { Route as AppRequestsRouteImport } from './routes/app.requests'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppStudentsRouteImport } from './routes/app.students'
+import { Route as CSidRouteImport } from './routes/c.$sid'
+import { Route as VerifyIndexRouteImport } from './routes/verify.index'
+import { Route as VerifyReceiptRouteImport } from './routes/verify.$receipt'
 
-export interface FileRoutesByFullPath {}
-export interface FileRoutesByTo {}
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLedgerRoute = AppLedgerRouteImport.update({
+  id: '/ledger',
+  path: '/ledger',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportRoute = AppReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRequestsRoute = AppRequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStudentsRoute = AppStudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => AppRoute,
+} as any)
+const CSidRoute = CSidRouteImport.update({
+  id: '/c/$sid',
+  path: '/c/$sid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyIndexRoute = VerifyIndexRouteImport.update({
+  id: '/verify/',
+  path: '/verify/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyReceiptRoute = VerifyReceiptRouteImport.update({
+  id: '/verify/$receipt',
+  path: '/verify/$receipt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/app/ledger': typeof AppLedgerRoute
+  '/app/report': typeof AppReportRoute
+  '/app/requests': typeof AppRequestsRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/students': typeof AppStudentsRoute
+  '/c/$sid': typeof CSidRoute
+  '/verify/$receipt': typeof VerifyReceiptRoute
+  '/app/': typeof AppIndexRoute
+  '/verify/': typeof VerifyIndexRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/app/ledger': typeof AppLedgerRoute
+  '/app/report': typeof AppReportRoute
+  '/app/requests': typeof AppRequestsRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/students': typeof AppStudentsRoute
+  '/c/$sid': typeof CSidRoute
+  '/verify/$receipt': typeof VerifyReceiptRoute
+  '/app': typeof AppIndexRoute
+  '/verify': typeof VerifyIndexRoute
+}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/app/ledger': typeof AppLedgerRoute
+  '/app/report': typeof AppReportRoute
+  '/app/requests': typeof AppRequestsRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/students': typeof AppStudentsRoute
+  '/c/$sid': typeof CSidRoute
+  '/verify/$receipt': typeof VerifyReceiptRoute
+  '/app/': typeof AppIndexRoute
+  '/verify/': typeof VerifyIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/login'
+    | '/app/ledger'
+    | '/app/report'
+    | '/app/requests'
+    | '/app/settings'
+    | '/app/students'
+    | '/c/$sid'
+    | '/verify/$receipt'
+    | '/app/'
+    | '/verify/'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to:
+    | '/'
+    | '/login'
+    | '/app/ledger'
+    | '/app/report'
+    | '/app/requests'
+    | '/app/settings'
+    | '/app/students'
+    | '/c/$sid'
+    | '/verify/$receipt'
+    | '/app'
+    | '/verify'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/login'
+    | '/app/ledger'
+    | '/app/report'
+    | '/app/requests'
+    | '/app/settings'
+    | '/app/students'
+    | '/c/$sid'
+    | '/verify/$receipt'
+    | '/app/'
+    | '/verify/'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  CSidRoute: typeof CSidRoute
+  VerifyReceiptRoute: typeof VerifyReceiptRoute
+  VerifyIndexRoute: typeof VerifyIndexRoute
 }
 
-const rootRouteChildren: RootRouteChildren = {}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/ledger': {
+      id: '/app/ledger'
+      path: '/ledger'
+      fullPath: '/app/ledger'
+      preLoaderRoute: typeof AppLedgerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/report': {
+      id: '/app/report'
+      path: '/report'
+      fullPath: '/app/report'
+      preLoaderRoute: typeof AppReportRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/requests': {
+      id: '/app/requests'
+      path: '/requests'
+      fullPath: '/app/requests'
+      preLoaderRoute: typeof AppRequestsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/students': {
+      id: '/app/students'
+      path: '/students'
+      fullPath: '/app/students'
+      preLoaderRoute: typeof AppStudentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/c/$sid': {
+      id: '/c/$sid'
+      path: '/c/$sid'
+      fullPath: '/c/$sid'
+      preLoaderRoute: typeof CSidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/': {
+      id: '/verify/'
+      path: '/verify'
+      fullPath: '/verify/'
+      preLoaderRoute: typeof VerifyIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/$receipt': {
+      id: '/verify/$receipt'
+      path: '/verify/$receipt'
+      fullPath: '/verify/$receipt'
+      preLoaderRoute: typeof VerifyReceiptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
+}
+
+interface AppRouteChildren {
+  AppLedgerRoute: typeof AppLedgerRoute
+  AppReportRoute: typeof AppReportRoute
+  AppRequestsRoute: typeof AppRequestsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppStudentsRoute: typeof AppStudentsRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppLedgerRoute: AppLedgerRoute,
+  AppReportRoute: AppReportRoute,
+  AppRequestsRoute: AppRequestsRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppStudentsRoute: AppStudentsRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
+  CSidRoute: CSidRoute,
+  VerifyReceiptRoute: VerifyReceiptRoute,
+  VerifyIndexRoute: VerifyIndexRoute,
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
