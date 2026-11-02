@@ -14,16 +14,466 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      breaches: {
+        Row: {
+          cause: string
+          count: number
+          created_at: string
+          data: Json
+          discovered_at: string
+          id: string
+          school_id: string
+          status: string
+          steps: Json
+          what: string
+        }
+        Insert: {
+          cause: string
+          count?: number
+          created_at?: string
+          data?: Json
+          discovered_at: string
+          id: string
+          school_id: string
+          status?: string
+          steps?: Json
+          what: string
+        }
+        Update: {
+          cause?: string
+          count?: number
+          created_at?: string
+          data?: Json
+          discovered_at?: string
+          id?: string
+          school_id?: string
+          status?: string
+          steps?: Json
+          what?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breaches_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demo_seed: {
+        Row: {
+          data: Json
+          id: number
+        }
+        Insert: {
+          data: Json
+          id?: number
+        }
+        Update: {
+          data?: Json
+          id?: number
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          at: string
+          city: string
+          gaps: Json | null
+          id: string
+          name: string
+          phone: string
+          role: string
+          school: string
+          score: number | null
+          size: string
+        }
+        Insert: {
+          at?: string
+          city?: string
+          gaps?: Json | null
+          id?: string
+          name: string
+          phone?: string
+          role?: string
+          school?: string
+          score?: number | null
+          size?: string
+        }
+        Update: {
+          at?: string
+          city?: string
+          gaps?: Json | null
+          id?: string
+          name?: string
+          phone?: string
+          role?: string
+          school?: string
+          score?: number | null
+          size?: string
+        }
+        Relationships: []
+      }
+      ledger: {
+        Row: {
+          detail: string
+          hash: string
+          prev: string
+          school_id: string
+          seq: number
+          sid: string
+          ts: string
+          type: string
+        }
+        Insert: {
+          detail: string
+          hash: string
+          prev: string
+          school_id: string
+          seq: number
+          sid: string
+          ts: string
+          type: string
+        }
+        Update: {
+          detail?: string
+          hash?: string
+          prev?: string
+          school_id?: string
+          seq?: number
+          sid?: string
+          ts?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      requests: {
+        Row: {
+          created_at: string
+          done_at: string | null
+          id: string
+          note: string
+          school_id: string
+          sid: string
+          status: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          done_at?: string | null
+          id: string
+          note?: string
+          school_id: string
+          sid: string
+          status?: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          done_at?: string | null
+          id?: string
+          note?: string
+          school_id?: string
+          sid?: string
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requests_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_staff: {
+        Row: {
+          created_at: string
+          school_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          school_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          school_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_staff_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schools: {
+        Row: {
+          breach_plan: boolean
+          city: string
+          created_at: string
+          dpo: string
+          id: string
+          is_demo: boolean
+          name: string
+          notice_version: string
+          slug: string
+        }
+        Insert: {
+          breach_plan?: boolean
+          city?: string
+          created_at?: string
+          dpo?: string
+          id?: string
+          is_demo?: boolean
+          name: string
+          notice_version?: string
+          slug: string
+        }
+        Update: {
+          breach_plan?: boolean
+          city?: string
+          created_at?: string
+          dpo?: string
+          id?: string
+          is_demo?: boolean
+          name?: string
+          notice_version?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          choices: Json
+          cls: string
+          consent_at: string | null
+          created_at: string
+          id: string
+          lang: string
+          name: string
+          parent: string
+          phone: string
+          receipt: string | null
+          school_id: string
+          sec: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          choices?: Json
+          cls: string
+          consent_at?: string | null
+          created_at?: string
+          id: string
+          lang?: string
+          name: string
+          parent: string
+          phone: string
+          receipt?: string | null
+          school_id: string
+          sec?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          choices?: Json
+          cls?: string
+          consent_at?: string | null
+          created_at?: string
+          id?: string
+          lang?: string
+          name?: string
+          parent?: string
+          phone?: string
+          receipt?: string | null
+          school_id?: string
+          sec?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          data: Json
+          dpa: string
+          id: string
+          name: string
+          review: string | null
+          role: string
+          school_id: string
+          signed_at: string | null
+        }
+        Insert: {
+          data?: Json
+          dpa?: string
+          id: string
+          name: string
+          review?: string | null
+          role?: string
+          school_id: string
+          signed_at?: string | null
+        }
+        Update: {
+          data?: Json
+          dpa?: string
+          id?: string
+          name?: string
+          review?: string | null
+          role?: string
+          school_id?: string
+          signed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendors_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      _append: {
+        Args: {
+          _detail: string
+          _school: string
+          _sid: string
+          _ts?: string
+          _type: string
+        }
+        Returns: {
+          detail: string
+          hash: string
+          prev: string
+          school_id: string
+          seq: number
+          sid: string
+          ts: string
+          type: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ledger"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      _seed_demo: { Args: never; Returns: undefined }
+      append_events: {
+        Args: { _events: Json; _school: string }
+        Returns: {
+          detail: string
+          hash: string
+          prev: string
+          school_id: string
+          seq: number
+          sid: string
+          ts: string
+          type: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "ledger"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      can_access: { Args: { _school: string }; Returns: boolean }
+      chain_ok: { Args: { _school: string }; Returns: boolean }
+      create_school: {
+        Args: { _city: string; _dpo: string; _name: string; _slug: string }
+        Returns: string
+      }
+      give_consent: {
+        Args: { _newsletter: boolean; _sid: string; _web: boolean }
+        Returns: {
+          detail: string
+          hash: string
+          prev: string
+          school_id: string
+          seq: number
+          sid: string
+          ts: string
+          type: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ledger"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      import_students: {
+        Args: { _rows: Json; _school: string }
+        Returns: number
+      }
+      iso_now: { Args: never; Returns: string }
+      parent_request: {
+        Args: { _note: string; _sid: string; _type: string }
+        Returns: undefined
+      }
+      parent_view: { Args: { _sid: string }; Returns: Json }
+      reset_demo: { Args: never; Returns: undefined }
+      verify_receipt: { Args: { _receipt: string }; Returns: Json }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +600,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+    },
   },
 } as const
