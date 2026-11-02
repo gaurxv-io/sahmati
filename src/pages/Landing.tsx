@@ -76,7 +76,7 @@ export default function Landing() {
             <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-hover" />Live demo</span>
           </div>
           <div className="grid grid-cols-3 gap-2.5">
-            {[["Consent", `${Math.round(st.cov * 100)}%`, "text-green"], ["Pending", String(st.pending), "text-amber-ink"], ["Readiness", `${Math.round((st.ready / 5) * 100)}%`, "text-ink"]].map(([l, v, c]) => (
+            {[["Consent", `${Math.round(st.cov * 100)}%`, "text-green"], ["Pending", String(st.pending), "text-amber-ink"], ["Readiness", `${Math.round((st.ready / st.checks.length) * 100)}%`, "text-ink"]].map(([l, v, c]) => (
               <div key={l} className="rounded-lg border border-line p-3">
                 <div className="font-mono text-[10px] uppercase text-muted-2">{l}</div>
                 <div className={`text-2xl font-semibold tracking-[-0.02em] ${c}`}>{v}</div>
