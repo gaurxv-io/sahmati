@@ -1,144 +1,70 @@
 @import "tailwindcss" source(none);
 @source "../src";
-@import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* Design tokens taken from the sahmati.in marketing site (ported from tailwind.config.ts). */
+@theme {
+  --color-canvas: #F7F8F7;
+  --color-subtle: #F0F2F1;
+  --color-track: #E7EAE8;
+  --color-ink: #0F1412;
+  --color-ink-2: #2A312D;
+  --color-ink-3: #3B4440;
+  --color-muted: #4A524E;
+  --color-muted-2: #5F6863;
+  --color-muted-3: #727B76;
+  --color-line: #E3E6E4;
+  --color-line-2: #D3D8D5;
+  --color-brand: #00E07A;
+  --color-brand-hover: #00C46A;
+  --color-brand-ink: #04130B;
+  --color-green: #047A44;
+  --color-green-hover: #035C33;
+  --color-green-soft: #E8F7EF;
+  --color-green-line: #A7E3C3;
+  --color-amber: #E09A1A;
+  --color-amber-ink: #A15C07;
+  --color-amber-soft: #FBF1DF;
+  --color-danger: #B42318;
+  --color-danger-soft: #FDECEA;
+  --color-white: #fff;
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
+  --font-sans: "Geist", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-hi: "Noto Sans Devanagari", "Nirmala UI", Mangal, sans-serif;
 
-@theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
-
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
-}
-
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --shadow-card: 0 16px 40px rgba(15, 20, 18, 0.06);
+  --shadow-lift: 0 16px 40px rgba(15, 20, 18, 0.08);
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
+  *, ::after, ::before { border-color: var(--color-line); }
+  button, [role="button"] { cursor: pointer; }
+  html { scroll-behavior: smooth; }
+  body { @apply bg-canvas text-ink font-sans antialiased; font-size: 14px; line-height: 1.5; }
+  h1, h2, h3 { @apply text-ink; text-wrap: balance; }
+  a { @apply text-green; }
+  a:hover { @apply text-green-hover; }
+  :focus-visible { outline: 2px solid #047A44; outline-offset: 2px; }
+  [lang="hi"] { font-family: "Noto Sans Devanagari", "Nirmala UI", sans-serif; }
+  [lang="hi"] .font-mono { font-family: "Geist Mono", ui-monospace, monospace; }
+}
 
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-  }
+@layer components {
+  .eyebrow { @apply font-mono text-[11px] uppercase tracking-[0.06em] text-muted-2; }
+  .btn { @apply inline-flex min-h-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-line-2 bg-white px-3.5 text-[13px] font-semibold text-ink transition-colors active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn:hover { @apply border-muted-3 text-ink; }
+  .btn-primary { @apply border-brand bg-brand font-bold text-brand-ink; }
+  .btn-primary:hover { @apply border-brand-hover bg-brand-hover text-brand-ink; }
+  .btn-ghost { @apply border-transparent bg-transparent text-muted; }
+  .btn-ghost:hover { @apply border-transparent bg-subtle; }
+  .btn-sm { @apply min-h-[30px] px-2.5 text-xs; }
+  .btn-lg { @apply min-h-[52px] px-5 text-[15px]; }
+  .field { @apply min-h-9 rounded-lg border border-line-2 bg-white px-2.5 text-[13px] text-ink; }
+  .panel { @apply min-w-0 rounded-xl border border-line bg-white; }
+  .tag { @apply rounded border border-line px-1.5 font-mono text-[10.5px] text-muted-3; }
+  .tag-on { @apply border-green-line bg-green-soft text-green; }
+  .th { @apply whitespace-nowrap border-b border-line bg-canvas px-3.5 py-2.5 text-left font-mono text-[11px] font-normal uppercase tracking-[0.06em] text-muted-2; }
+  .td { @apply border-b border-line px-3.5 py-3 align-middle text-ink-2; }
 }
