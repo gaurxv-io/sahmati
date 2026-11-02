@@ -1,5 +1,5 @@
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { FileText, Inbox, LayoutGrid, Link2, Settings, Users } from "lucide-react";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { AlertTriangle, Building2, FileText, Inbox, LayoutGrid, Link2, Settings, ShieldAlert, Users } from "lucide-react";
 import { Crest, Logo } from "@/components/brand";
 import { actions, useDB } from "@/lib/store";
 import { daysLeft, elapsed, stats } from "@/lib/derive";
@@ -10,6 +10,8 @@ const NAV = [
   ["/app/students", "Students", Users],
   ["/app/requests", "Parent requests", Inbox],
   ["/app/ledger", "Consent ledger", Link2],
+  ["/app/breach", "Breaches", ShieldAlert],
+  ["/app/vendors", "Vendors", Building2],
   ["/app/report", "Compliance report", FileText],
   ["/app/settings", "School settings", Settings],
 ] as const;
@@ -18,18 +20,19 @@ export default function AppLayout() {
   const db = useDB()!;
   const st = stats(db);
   const loc = useLocation();
+  const nav = useNavigate();
   const path = loc.pathname.replace(/\/$/, "") || "/";
   const title = NAV.find(([to]) => to === path)?.[1] ?? "Overview";
 
   return (
-    <div className="grid min-h-screen md:grid-cols-[236px_minmax(0,1fr)]">
-      <aside className="flex flex-wrap items-center gap-3 border-b border-line bg-white px-4 py-3 md:sticky md:top-0 md:h-screen md:flex-col md:flex-nowrap md:items-stretch md:gap-5 md:border-b-0 md:border-r md:px-3.5 md:py-5">
+    <div className="grid min-h-screen grid-cols-[minmax(0,1fr)] md:grid-cols-[236px_minmax(0,1fr)]">
+      <aside className="flex min-w-0 flex-col items-stretch gap-2.5 border-b border-line bg-white px-4 py-3 md:sticky md:top-0 md:h-screen md:gap-5 md:border-b-0 md:border-r md:px-3.5 md:py-5">
         <div className="px-1.5"><Logo to="/" /></div>
         <div className="hidden items-center gap-2.5 rounded-xl border border-line p-2.5 md:flex">
           <Crest name={db.school.name} />
           <div className="min-w-0"><div className="text-[13px] font-semibold leading-tight">{db.school.name}</div><div className="font-mono text-[11px] text-muted-2">{db.school.slug}.sahmati.in</div></div>
         </div>
-        <nav className="flex w-full gap-0.5 overflow-x-auto md:flex-col" aria-label="Console">
+        <nav className="-mx-4 flex min-w-0 gap-0.5 overflow-x-auto px-4 md:mx-0 md:flex-col md:px-0" aria-label="Console">
           {NAV.map(([to, label, Icon]) => {
             const isActive = path === to;
             return (
@@ -37,6 +40,7 @@ export default function AppLayout() {
                 <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
                 {label}
                 {to === "/app/requests" && st.open > 0 && <span className="ml-auto rounded-full bg-amber-soft px-1.5 font-mono text-[11px] text-amber-ink">{st.open}</span>}
+                {to === "/app/breach" && st.openBreaches > 0 && <span className="ml-auto rounded-full bg-danger-soft px-1.5 font-mono text-[11px] text-danger">{st.openBreaches}</span>}
               </Link>
             );
           })}
@@ -59,7 +63,8 @@ export default function AppLayout() {
         <div className="sticky top-0 z-10 border-b border-line bg-canvas/90 backdrop-blur">
           <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-7">
             <div className="flex items-center gap-2 text-[13px] text-muted-2"><span className="hidden sm:inline">{db.school.name}</span><span className="hidden sm:inline">/</span><b className="font-semibold text-ink">{title}</b></div>
-            <span className="ml-auto inline-flex items-center gap-2 rounded-full border border-line bg-white px-2.5 py-1 font-mono text-[11px] text-muted-2"><span className="h-1.5 w-1.5 rounded-full bg-muted-3" />Sample school · demo data</span>
+            <span className="ml-auto hidden items-center gap-2 rounded-full sm:inline-flex border border-line bg-white px-2.5 py-1 font-mono text-[11px] text-muted-2"><span className="h-1.5 w-1.5 rounded-full bg-muted-3" />Sample school · demo data</span>
+            <button className="btn btn-danger btn-sm" onClick={() => nav({ to: "/app/breach", search: { new: 1 } })}><AlertTriangle className="h-3.5 w-3.5" />Report a data breach</button>
             <button className="btn btn-ghost btn-sm" onClick={async () => { await actions.reset(); toast("Demo data reset"); }}>Reset demo</button>
           </div>
         </div>

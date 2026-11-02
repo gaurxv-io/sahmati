@@ -1,7 +1,8 @@
 import { useSyncExternalStore } from "react";
-import type { DB, Lead, LedgerEvent, ParentRequest, RequestType, School, Student } from "./types";
+import type { Breach, DB, Lead, Vendor, LedgerEvent, ParentRequest, RequestType, School, Student } from "./types";
 import { buildSampleDB, chainString } from "./sample";
 import { sha256 } from "./hash";
+import { BREACH_STEPS } from "./derive";
 
 /**
  * Demo data store. Persists to localStorage and syncs across tabs, so the school console
@@ -16,7 +17,9 @@ let started = false;
 
 function emit() { listeners.forEach((l) => l()); }
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { /* storage unavailable: keep in memory */ } }
-function load(): DB | null { try { const raw = localStorage.getItem(KEY); return raw ? (JSON.parse(raw) as DB) : null; } catch { return null; } }
+function load(): DB | null { try { const raw = localStorage.getItem(KEY); return raw ? normalize(JSON.parse(raw) as DB) : null; } catch { return null; } }
+/** Older stored demos predate some fields; default them so nothing crashes. */
+function normalize(d: DB): DB { d.leads ??= []; d.breaches ??= []; d.vendors ??= []; d.requests ??= {}; return d; }
 
 export async function initStore() {
   if (started || typeof window === "undefined") return;
@@ -96,6 +99,20 @@ export const actions = {
     }, [["import", "-", `${rows.length} students imported from spreadsheet`]]);
   },
   addLead: (lead: Omit<Lead, "at">) => run(async () => { const next: DB = JSON.parse(JSON.stringify(db)); next.leads.push({ ...lead, at: now() }); commit(next); }),
+  reportBreach: (b: Omit<Breach, "id" | "createdAt" | "steps" | "status">) => {
+    const id = "b" + String(Date.now()).slice(-6);
+    return mutate((d) => { d.breaches.push({ ...b, id, createdAt: now(), steps: BREACH_STEPS.map(() => null), status: "open" }); }, [["breach", "-", `Data breach logged · ${b.cause} · about ${b.count} students`]]).then(() => id);
+  },
+  breachStep: (id: string, i: number) => mutate((d) => {
+    const b = d.breaches.find((x) => x.id === id)!;
+    b.steps[i] = now();
+    if (b.steps.every(Boolean)) b.status = "closed";
+  }, [["breachstep", "-", `Breach ${id.toUpperCase()}: ${BREACH_STEPS[i][0]} done`]]),
+  addVendor: (v: Omit<Vendor, "id">) => mutate((d) => { d.vendors.push({ ...v, id: "v" + String(Date.now()).slice(-6) }); }, [["vendor", "-", `Vendor added: ${v.name} · DPA ${v.dpa}`]]),
+  signDpa: (id: string) => {
+    const v = db!.vendors.find((x) => x.id === id)!;
+    return mutate((d) => { const x = d.vendors.find((y) => y.id === id)!; x.dpa = "signed"; x.signedAt = now(); x.review = new Date(Date.now() + 365 * 86400000).toISOString(); }, [["vendor", "-", `DPA signed with ${v.name}`]]);
+  },
   /** Demo only: edits a past record without re-hashing, to show the chain catching it. */
   tamper: () => run(async () => { const next: DB = JSON.parse(JSON.stringify(db)); const e = next.events[Math.floor(next.events.length / 2)]; e.detail = e.detail.replace("web no", "web yes") + " "; commit(next); return e.seq; }),
   reset: () => run(async () => { commit(await buildSampleDB()); }),

@@ -13,7 +13,7 @@ export default function Overview() {
     { l: "Consent", v: `${Math.round(st.cov * 100)}%`, c: "text-green", s: <>{st.given + st.withdrawn} of {st.total} students recorded</> },
     { l: "Pending", v: String(st.pending), c: "text-amber-ink", s: <Link to="/app/students" search={{ status: "pending", remind: "1" }} className="font-semibold">Send reminders</Link> },
     { l: "Parent requests", v: String(st.open), c: "", s: st.late ? <Pill kind="late" label={`${st.late} overdue`} /> : <>Open · none overdue</> },
-    { l: "Readiness", v: `${Math.round((st.ready / 5) * 100)}%`, c: st.ready === 5 ? "text-green" : "", s: <>{st.ready} of 5 steps complete</> },
+    { l: "Readiness", v: `${Math.round((st.ready / st.checks.length) * 100)}%`, c: st.ready === st.checks.length ? "text-green" : "", s: <>{st.ready} of {st.checks.length} steps complete</> },
   ];
   return (
     <>
@@ -59,7 +59,7 @@ export default function Overview() {
         </div>
 
         <div className="panel">
-          <div className="flex items-center justify-between px-[18px] pt-4"><h2 className="text-base font-semibold">Road to DPDP Ready</h2><span className="eyebrow">{st.ready} / 5</span></div>
+          <div className="flex items-center justify-between px-[18px] pt-4"><h2 className="text-base font-semibold">Road to DPDP Ready</h2><span className="eyebrow">{st.ready} / {st.checks.length}</span></div>
           <div className="px-[18px] pb-[18px] pt-4">
             {st.checks.map((c) => (
               <div key={c.title} className="grid grid-cols-[22px_1fr_auto] items-start gap-3 border-t border-line py-3 text-[13.5px] first:border-t-0 first:pt-0">
@@ -69,8 +69,8 @@ export default function Overview() {
               </div>
             ))}
             <div className="mt-1.5 flex items-center gap-4 border-t border-line pt-4">
-              <Seal earned={st.ready === 5} />
-              <p className="text-[12.5px] text-muted-2">{st.ready === 5 ? "Earned. Use the DPDP Ready School badge on your website, admission brochures and notice board." : "Finish all five steps to earn the DPDP Ready School badge. It is Sahmati's own standard, not a government certificate."}</p>
+              <Seal earned={st.ready === st.checks.length} />
+              <p className="text-[12.5px] text-muted-2">{st.ready === st.checks.length ? "Earned. Use the DPDP Ready School badge on your website, admission brochures and notice board." : `Finish all ${st.checks.length} steps to earn the DPDP Ready School badge. It is Sahmati's own standard, not a government certificate.`}</p>
             </div>
           </div>
         </div>

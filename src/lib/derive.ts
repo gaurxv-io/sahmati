@@ -1,4 +1,18 @@
-import type { DB, ParentRequest, Student } from "./types";
+import type { Breach, DB, ParentRequest, Student } from "./types";
+
+export const BREACH_STEPS = [
+  ["Contain the leak", "Stop access, change passwords"],
+  ["Inform the Data Protection Board", "Initial intimation"],
+  ["Notify affected parents", "Plain-language message to each family"],
+  ["Send the detailed report to the Board", "Within 72 hours of discovery"],
+  ["Fix the cause", "Close the gap that let it happen"],
+  ["Close the incident", "Record the outcome"],
+] as const;
+export const BREACH_DATA = ["Names and classes", "Contact numbers", "Addresses", "Marks and attendance", "Medical notes", "Photos"] as const;
+export const BREACH_CAUSES = ["Lost or stolen device", "Sent to the wrong person", "Vendor or app leak", "Hacked account", "Other"] as const;
+export const breachDeadline = (b: Breach) => Date.parse(b.discoveredAt) + 72 * 3600000;
+/** Open breach whose 72-hour detailed report (step 4) is still not sent after the deadline. */
+export const breachOverdue = (b: Breach, at = Date.now()) => b.status === "open" && !b.steps[3] && at > breachDeadline(b);
 
 export const DEADLINE = Date.parse("2027-05-13T00:00:00+05:30");
 export const RULES_NOTIFIED = Date.parse("2025-11-13T00:00:00+05:30");
@@ -48,12 +62,19 @@ export function stats(db: DB) {
   const open = reqs.filter((r) => r.status === "open").length;
   const late = reqs.filter(isLate).length;
   const sent = db.events.some((e) => e.type === "sent" || e.type === "drive");
+  const breaches = db.breaches ?? [];
+  const openBreaches = breaches.filter((b) => b.status === "open").length;
+  const overdueBreaches = breaches.filter((b) => breachOverdue(b)).length;
+  const vendors = db.vendors ?? [];
+  const unsigned = vendors.filter((v) => v.dpa !== "signed").length;
   const checks = [
     { ok: !!db.school.noticeVersion, title: "Privacy notice published", detail: db.school.noticeVersion ? `Notice ${db.school.noticeVersion} · English, Hindi` : "Not published" },
     { ok: sent, title: "Consent drive running on WhatsApp", detail: sent ? "Links sent to parents" : "No links sent yet" },
     { ok: cov >= 0.9, title: "Consent recorded for 90% of students", detail: `${Math.round(cov * 100)}% recorded` },
     { ok: late === 0, title: `Parent requests answered in ${SLA_DAYS} days`, detail: late ? `${late} overdue` : `${open} open · none overdue` },
     { ok: db.school.breachPlan, title: "72-hour breach plan on file", detail: db.school.breachPlan ? "Filed" : "Not filed", action: "breach" as const },
+    { ok: !overdueBreaches, title: "No open breach past 72 hours", detail: overdueBreaches ? `${overdueBreaches} overdue` : `${openBreaches} open · none overdue` },
+    { ok: vendors.length > 0 && unsigned === 0, title: "Every vendor has a signed DPA", detail: vendors.length ? (unsigned ? `${unsigned} of ${vendors.length} not signed` : `${vendors.length} of ${vendors.length} signed`) : "No vendors listed" },
   ];
-  return { total, given, withdrawn, pending, cov, bands, open, late, reqs: reqs.length, checks, ready: checks.filter((c) => c.ok).length };
+  return { total, given, withdrawn, pending, cov, bands, open, late, reqs: reqs.length, checks, ready: checks.filter((c) => c.ok).length, openBreaches, overdueBreaches, unsignedVendors: unsigned };
 }

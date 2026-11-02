@@ -22,7 +22,7 @@ export default function Report() {
           <p className="font-mono text-xs uppercase text-muted-2">{db.school.city} · {db.school.slug}.sahmati.in · generated {fmtTime(new Date().toISOString())} IST</p>
         </header>
         <p className="text-[15px] leading-relaxed text-ink-2">
-          Consent is recorded for <b>{st.given + st.withdrawn} of {st.total} students</b> ({Math.round(st.cov * 100)}%). {st.pending} parents have not yet responded and {st.withdrawn} {st.withdrawn === 1 ? "has" : "have"} withdrawn optional consents. The school meets {st.ready} of 5 readiness steps with {daysLeft()} days left before the 13 May 2027 deadline.
+          Consent is recorded for <b>{st.given + st.withdrawn} of {st.total} students</b> ({Math.round(st.cov * 100)}%). {st.pending} parents have not yet responded and {st.withdrawn} {st.withdrawn === 1 ? "has" : "have"} withdrawn optional consents. The school meets {st.ready} of {st.checks.length} readiness steps with {daysLeft()} days left before the 13 May 2027 deadline.
         </p>
         <section>
           <h2 className="mb-2.5 text-[15px] font-semibold">Coverage by class group</h2>
@@ -44,7 +44,7 @@ export default function Report() {
         </section>
         <footer className="flex flex-wrap items-center justify-between gap-6 border-t border-line pt-5">
           <p className="max-w-[52ch] text-[12.5px] text-muted-2">Prepared with Sahmati, which processes data on the school's behalf under a data processing agreement. The school remains the data fiduciary under the Act. This report is general guidance, not legal advice.</p>
-          <Seal earned={st.ready === 5} />
+          <Seal earned={st.ready === st.checks.length} />
         </footer>
       </article>
     </>

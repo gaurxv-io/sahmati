@@ -59,6 +59,8 @@
   .btn-primary:hover { @apply border-brand-hover bg-brand-hover text-brand-ink; }
   .btn-ghost { @apply border-transparent bg-transparent text-muted; }
   .btn-ghost:hover { @apply border-transparent bg-subtle; }
+  .btn-danger { @apply border-danger bg-white text-danger; }
+  .btn-danger:hover { @apply border-danger bg-danger-soft text-danger; }
   .btn-sm { @apply min-h-[30px] px-2.5 text-xs; }
   .btn-lg { @apply min-h-[52px] px-5 text-[15px]; }
   .field { @apply min-h-9 rounded-lg border border-line-2 bg-white px-2.5 text-[13px] text-ink; }

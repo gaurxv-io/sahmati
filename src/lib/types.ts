@@ -21,7 +21,7 @@ export type Student = {
 export type LedgerEvent = {
   seq: number;
   ts: string;
-  type: "notice" | "drive" | "sent" | "remind" | "consent" | "update" | "withdraw" | "request" | "resolved" | "plan" | "import";
+  type: "notice" | "drive" | "sent" | "remind" | "consent" | "update" | "withdraw" | "request" | "resolved" | "plan" | "import" | "breach" | "breachstep" | "vendor";
   sid: string;
   detail: string;
   prev: string;
@@ -56,4 +56,22 @@ export type DB = {
   events: LedgerEvent[];
   requests: Record<string, ParentRequest>;
   leads: Lead[];
+  breaches: Breach[];
+  vendors: Vendor[];
 };
+
+export type Breach = {
+  id: string;
+  what: string;
+  discoveredAt: string;
+  data: string[];
+  count: number;
+  cause: string;
+  createdAt: string;
+  /** Done-at time for each of the 6 response steps, or null. */
+  steps: (string | null)[];
+  status: "open" | "closed";
+};
+
+export type DpaStatus = "signed" | "sent" | "missing";
+export type Vendor = { id: string; name: string; role: string; data: string[]; dpa: DpaStatus; signedAt: string | null; review: string | null };
