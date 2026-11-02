@@ -8,6 +8,8 @@ export const Route = createFileRoute("/audit")({
       { name: "description", content: "Answer 12 questions in 5 minutes and get your school's DPDP readiness score and gap report." },
       { property: "og:title", content: "Free DPDP self-audit for schools · Sahmati" },
       { property: "og:description", content: "Answer 12 questions in 5 minutes and get your school's DPDP readiness score and gap report." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Page,
