@@ -1,7 +1,7 @@
 import { Download, Printer } from "lucide-react";
 import { Pill, Seal } from "@/components/brand";
-import { useDB } from "@/lib/store";
-import { SLA_DAYS, daysLeft, fmtTime, stats } from "@/lib/derive";
+import { actions, useDB } from "@/lib/store";
+import { SLA_DAYS, can, daysLeft, fmtTime, stats } from "@/lib/derive";
 import { PageHead } from "./Layout";
 import { downloadText, ledgerCsv } from "./Ledger";
 
