@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_log: {
+        Row: {
+          action: string
+          actor: string
+          at: string
+          detail: string
+          id: number
+          role: string
+          school_id: string
+          sid: string
+        }
+        Insert: {
+          action: string
+          actor: string
+          at?: string
+          detail?: string
+          id?: never
+          role?: string
+          school_id: string
+          sid?: string
+        }
+        Update: {
+          action?: string
+          actor?: string
+          at?: string
+          detail?: string
+          id?: never
+          role?: string
+          school_id?: string
+          sid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_log_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       breaches: {
         Row: {
           cause: string
@@ -197,6 +238,47 @@ export type Database = {
           },
         ]
       }
+      packs: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          school_id: string
+          sid: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          expires_at: string
+          id: string
+          revoked_at?: string | null
+          school_id: string
+          sid: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          school_id?: string
+          sid?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       requests: {
         Row: {
           created_at: string
@@ -240,17 +322,29 @@ export type Database = {
       }
       school_staff: {
         Row: {
+          classes: string[]
           created_at: string
+          email: string
+          name: string
+          role: string
           school_id: string
           user_id: string
         }
         Insert: {
+          classes?: string[]
           created_at?: string
+          email?: string
+          name?: string
+          role?: string
           school_id: string
           user_id: string
         }
         Update: {
+          classes?: string[]
           created_at?: string
+          email?: string
+          name?: string
+          role?: string
           school_id?: string
           user_id?: string
         }
@@ -300,11 +394,47 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_invites: {
+        Row: {
+          classes: string[]
+          created_at: string
+          email: string
+          name: string
+          role: string
+          school_id: string
+        }
+        Insert: {
+          classes?: string[]
+          created_at?: string
+          email: string
+          name?: string
+          role: string
+          school_id: string
+        }
+        Update: {
+          classes?: string[]
+          created_at?: string
+          email?: string
+          name?: string
+          role?: string
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_invites_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           choices: Json
           cls: string
           consent_at: string | null
+          consent_notice: string | null
           created_at: string
           id: string
           lang: string
@@ -321,6 +451,7 @@ export type Database = {
           choices?: Json
           cls: string
           consent_at?: string | null
+          consent_notice?: string | null
           created_at?: string
           id: string
           lang?: string
@@ -337,6 +468,7 @@ export type Database = {
           choices?: Json
           cls?: string
           consent_at?: string | null
+          consent_notice?: string | null
           created_at?: string
           id?: string
           lang?: string
@@ -448,7 +580,23 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      _clean_classes: { Args: { _classes: string[] }; Returns: string[] }
+      _log: {
+        Args: {
+          _action: string
+          _detail: string
+          _school: string
+          _sid: string
+        }
+        Returns: undefined
+      }
+      _role_label: {
+        Args: { _classes: string[]; _role: string }
+        Returns: string
+      }
       _seed_demo: { Args: never; Returns: undefined }
+      _who: { Args: { _school: string }; Returns: string[] }
+      accept_invite: { Args: never; Returns: string }
       append_events: {
         Args: { _events: Json; _school: string }
         Returns: {
@@ -469,7 +617,16 @@ export type Database = {
         }
       }
       can_access: { Args: { _school: string }; Returns: boolean }
+      can_admin: { Args: { _school: string }; Returns: boolean }
+      can_see_cls: { Args: { _cls: string; _school: string }; Returns: boolean }
+      can_see_sid: { Args: { _school: string; _sid: string }; Returns: boolean }
+      can_write: { Args: { _school: string }; Returns: boolean }
+      cancel_invite: {
+        Args: { _email: string; _school: string }
+        Returns: undefined
+      }
       chain_ok: { Args: { _school: string }; Returns: boolean }
+      create_pack: { Args: { _school: string; _sid: string }; Returns: Json }
       create_school: {
         Args: { _city: string; _dpo: string; _name: string; _slug: string }
         Returns: string
@@ -494,18 +651,62 @@ export type Database = {
         Args: { _rows: Json; _school: string }
         Returns: number
       }
+      invite_staff: {
+        Args: {
+          _classes: string[]
+          _email: string
+          _name: string
+          _role: string
+          _school: string
+        }
+        Returns: undefined
+      }
       iso_now: { Args: never; Returns: string }
+      log_access: {
+        Args: {
+          _action: string
+          _detail: string
+          _school: string
+          _sid: string
+        }
+        Returns: undefined
+      }
+      my_classes: { Args: { _school: string }; Returns: string[] }
+      my_role: { Args: { _school: string }; Returns: string }
       otp_hash: { Args: { _code: string; _sid: string }; Returns: string }
       otp_issue: {
         Args: { _hash: string; _sid: string; _ttl_seconds?: number }
         Returns: Json
       }
+      pack_view: { Args: { _token: string }; Returns: Json }
       parent_request: {
         Args: { _note: string; _sid: string; _type: string }
         Returns: undefined
       }
       parent_view: { Args: { _sid: string }; Returns: Json }
+      public_school: { Args: { _slug: string }; Returns: Json }
+      remove_staff: {
+        Args: { _school: string; _user: string }
+        Returns: undefined
+      }
       reset_demo: { Args: never; Returns: undefined }
+      revoke_pack: {
+        Args: { _id: string; _school: string }
+        Returns: undefined
+      }
+      set_staff_role: {
+        Args: {
+          _classes: string[]
+          _role: string
+          _school: string
+          _user: string
+        }
+        Returns: undefined
+      }
+      start_renewal: {
+        Args: { _kind: string; _school: string; _since: string }
+        Returns: number
+      }
       verify_receipt: { Args: { _receipt: string }; Returns: Json }
     }
     Enums: {

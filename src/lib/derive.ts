@@ -1,4 +1,17 @@
-import type { Breach, DB, ParentRequest, Student } from "./types";
+import type { Breach, DB, ParentRequest, Role, Student } from "./types";
+
+export const ROLES: Record<Role, { label: string; desc: string }> = {
+  principal: { label: "Principal", desc: "Admin: everything, including team and settings" },
+  office: { label: "Office", desc: "Students, parent requests, consent drives and data packs" },
+  teacher: { label: "Teacher", desc: "Read-only, their own classes only" },
+  auditor: { label: "Auditor", desc: "Read-only everything, no exports of personal data" },
+};
+export const roleLabel = (r: string, classes: string[] = []) => (ROLES[r as Role]?.label ?? r) + (r === "teacher" && classes.length ? ` · Class ${classes.join(", ")}` : "");
+/** What the current person may do. The database enforces the same rules. */
+export const can = (db: DB) => {
+  const r = db.me.role;
+  return { write: r === "principal" || r === "office", admin: r === "principal", export: r === "principal" || r === "office", log: r === "principal" || r === "auditor" };
+};
 
 export const BREACH_STEPS = [
   ["Contain the leak", "Stop access, change passwords"],
@@ -51,8 +64,9 @@ export function stats(db: DB) {
   const total = list.length;
   const given = list.filter((s) => s.status === "given").length;
   const withdrawn = list.filter((s) => s.status === "withdrawn").length;
-  const pending = total - given - withdrawn;
-  const cov = total ? (given + withdrawn) / total : 0;
+  const renewal = list.filter((s) => s.status === "renewal").length;
+  const pending = total - given - withdrawn - renewal;
+  const cov = total ? (given + withdrawn + renewal) / total : 0;
   const bands = BANDS.map((name) => {
     const inB = list.filter((s) => band(s.cls) === name);
     const done = inB.filter((s) => s.status !== "pending").length;
@@ -75,6 +89,17 @@ export function stats(db: DB) {
     { ok: db.school.breachPlan, title: "72-hour breach plan on file", detail: db.school.breachPlan ? "Filed" : "Not filed", action: "breach" as const },
     { ok: !overdueBreaches, title: "No open breach past 72 hours", detail: overdueBreaches ? `${overdueBreaches} overdue` : `${openBreaches} open · none overdue` },
     { ok: vendors.length > 0 && unsigned === 0, title: "Every vendor has a signed DPA", detail: vendors.length ? (unsigned ? `${unsigned} of ${vendors.length} not signed` : `${vendors.length} of ${vendors.length} signed`) : "No vendors listed" },
+    { ok: (db.staff ?? []).some((m) => m.role !== "principal"), title: "Staff access limited by role", detail: staffDetail(db) },
   ];
-  return { total, given, withdrawn, pending, cov, bands, open, late, reqs: reqs.length, checks, ready: checks.filter((c) => c.ok).length, openBreaches, overdueBreaches, unsignedVendors: unsigned };
+  return { renewal, total, given, withdrawn, pending, cov, bands, open, late, reqs: reqs.length, checks, ready: checks.filter((c) => c.ok).length, openBreaches, overdueBreaches, unsignedVendors: unsigned };
 }
+
+function staffDetail(db: DB) {
+  const staff = db.staff ?? [];
+  const other = staff.filter((m) => m.role !== "principal").length;
+  return other ? `${staff.length} people · own logins · ${other} with limited roles` : staff.length ? "Everyone has full access" : "No team set up";
+}
+/** Students who consented to an older notice version than the current one. */
+export const olderNotice = (db: DB) => Object.values(db.students).filter((s) => (s.status === "given" || s.status === "withdrawn") && (s.noticeAt ?? "") !== db.school.noticeVersion);
+export const packLink = (token: string) => `${window.location.origin}/p/${token}`;
+export const publicLink = (slug: string) => `${window.location.origin}/s/${slug}`;

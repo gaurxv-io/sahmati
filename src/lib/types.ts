@@ -1,4 +1,4 @@
-export type ConsentStatus = "pending" | "given" | "withdrawn";
+export type ConsentStatus = "pending" | "given" | "withdrawn" | "renewal";
 export type Lang = "en" | "hi";
 
 export type Choices = { records: true; web: boolean; newsletter: boolean };
@@ -16,12 +16,15 @@ export type Student = {
   sentAt: string | null;
   consentAt: string | null;
   receipt: string | null;
+  /** When the student was added, and the notice version the parent last consented to. */
+  createdAt?: string;
+  noticeAt?: string | null;
 };
 
 export type LedgerEvent = {
   seq: number;
   ts: string;
-  type: "notice" | "drive" | "sent" | "remind" | "consent" | "update" | "withdraw" | "request" | "resolved" | "plan" | "import" | "breach" | "breachstep" | "vendor";
+  type: "notice" | "drive" | "sent" | "remind" | "consent" | "update" | "withdraw" | "request" | "resolved" | "plan" | "import" | "breach" | "breachstep" | "vendor" | "team" | "pack";
   sid: string;
   detail: string;
   prev: string;
@@ -58,7 +61,19 @@ export type DB = {
   leads: Lead[];
   breaches: Breach[];
   vendors: Vendor[];
+  staff: Staff[];
+  invites: Invite[];
+  access: AccessRow[];
+  packs: Pack[];
+  /** The person using the console and what their role allows. */
+  me: { role: Role; name: string; classes: string[] };
 };
+
+export type Role = "principal" | "office" | "teacher" | "auditor";
+export type Staff = { userId: string; name: string; email: string; role: Role; classes: string[]; createdAt: string };
+export type Invite = { email: string; name: string; role: Role; classes: string[]; createdAt: string };
+export type AccessRow = { id: number; at: string; actor: string; role: string; action: "view" | "export" | "change"; sid: string; detail: string };
+export type Pack = { id: string; sid: string; createdAt: string; expiresAt: string; revokedAt: string | null; createdBy: string };
 
 export type Breach = {
   id: string;

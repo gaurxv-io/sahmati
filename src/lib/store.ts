@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import type { RealtimeChannel, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import type { Breach, DB, Lead, Vendor, LedgerEvent, ParentRequest, RequestType, School, Student } from "./types";
+import type { AccessRow, Breach, DB, Lead, Vendor, LedgerEvent, ParentRequest, RequestType, Role, School, Student } from "./types";
 import { chainString } from "./sample";
 import { sha256 } from "./hash";
 import { BREACH_STEPS } from "./derive";
@@ -98,8 +98,16 @@ async function resolve() {
       const { data, error } = await supabase.from("school_staff").select("school_id").eq("user_id", state.user!.id).maybeSingle();
       if (error) throw error;
       if (my !== token) return;
-      if (!data) { schoolId = null; set({ status: "onboard", mode: "live", db: null }); return; }
-      id = data.school_id; mode = "live";
+      let mine = data?.school_id ?? null;
+      if (!mine) {
+        // Invited staff join their school on first sign-in.
+        const inv = await supabase.rpc("accept_invite");
+        if (inv.error) throw inv.error;
+        mine = (inv.data as string | null) ?? null;
+      }
+      if (my !== token) return;
+      if (!mine) { schoolId = null; set({ status: "onboard", mode: "live", db: null }); return; }
+      id = mine; mode = "live";
     } else {
       const { data, error } = await supabase.from("schools").select("id").eq("is_demo", true).limit(1).maybeSingle();
       if (error) throw error;
@@ -126,7 +134,7 @@ function teardown() {
 
 function listen(id: string) {
   const ch = supabase.channel(`school-${id}-${Math.random().toString(36).slice(2)}`);
-  for (const table of ["students", "ledger", "requests", "breaches", "vendors"] as const) {
+  for (const table of ["students", "ledger", "requests", "breaches", "vendors", "school_staff", "staff_invites", "access_log", "packs"] as const) {
     ch.on("postgres_changes", { event: "*", schema: "public", table, filter: `school_id=eq.${id}` }, scheduleRefetch);
   }
   ch.on("postgres_changes", { event: "*", schema: "public", table: "schools", filter: `id=eq.${id}` }, scheduleRefetch);
@@ -162,17 +170,19 @@ async function all<T>(page: (from: number, to: number) => PromiseLike<{ data: T[
 
 const iso = (v: string | null) => (v ? new Date(v).toISOString() : null);
 
-type StudentRow = { id: string; name: string; cls: string; sec: string; parent: string; phone: string; lang: string; status: string; choices: unknown; sent_at: string | null; consent_at: string | null; receipt: string | null };
+type StudentRow = { id: string; name: string; cls: string; sec: string; parent: string; phone: string; lang: string; status: string; choices: unknown; sent_at: string | null; consent_at: string | null; receipt: string | null; created_at?: string | null; consent_notice?: string | null };
 const toStudent = (r: StudentRow): Student => ({
   id: r.id, name: r.name, cls: r.cls, sec: r.sec, parent: r.parent, phone: r.phone, lang: r.lang as Student["lang"],
   status: r.status as Student["status"], choices: r.choices as Student["choices"], sentAt: iso(r.sent_at), consentAt: iso(r.consent_at), receipt: r.receipt,
+  ...(r.created_at ? { createdAt: iso(r.created_at)! } : {}), noticeAt: r.consent_notice ?? null,
 });
 const toEvent = (r: { seq: number; ts: string; type: string; sid: string; detail: string; prev: string; hash: string }): LedgerEvent => ({
   seq: r.seq, ts: r.ts, type: r.type as LedgerEvent["type"], sid: r.sid, detail: r.detail, prev: r.prev, hash: r.hash,
 });
 
 async function loadSchool(id: string): Promise<DB> {
-  const [school, students, events, requests, breaches, vendors, leads] = await Promise.all([
+  const uid = state.user?.id ?? null;
+  const [school, students, events, requests, breaches, vendors, leads, staff, invites, access, packs] = await Promise.all([
     supabase.from("schools").select("*").eq("id", id).single(),
     all((a, b) => supabase.from("students").select("*").eq("school_id", id).order("id").range(a, b)),
     all((a, b) => supabase.from("ledger").select("seq,ts,type,sid,detail,prev,hash").eq("school_id", id).order("seq").range(a, b)),
@@ -180,12 +190,23 @@ async function loadSchool(id: string): Promise<DB> {
     supabase.from("breaches").select("*").eq("school_id", id).order("created_at"),
     supabase.from("vendors").select("*").eq("school_id", id).order("id"),
     supabase.from("leads").select("*").order("at"),
+    supabase.from("school_staff").select("*").eq("school_id", id).order("created_at"),
+    supabase.from("staff_invites").select("*").eq("school_id", id).order("created_at"),
+    supabase.from("access_log").select("*").eq("school_id", id).order("at", { ascending: false }).limit(1000),
+    supabase.from("packs").select("id,sid,created_at,expires_at,revoked_at,created_by").eq("school_id", id).order("created_at", { ascending: false }),
   ]);
   if (school.error) throw school.error;
   if (breaches.error) throw breaches.error;
   if (vendors.error) throw vendors.error;
   const s = school.data;
+  const team = (staff.data ?? []).map((m) => ({ userId: m.user_id, name: m.name, email: m.email, role: m.role as Role, classes: m.classes ?? [], createdAt: iso(m.created_at)! }));
+  const self = s.is_demo ? null : team.find((m) => m.userId === uid);
   return {
+    me: self ? { role: self.role, name: self.name || self.email, classes: self.classes } : { role: "principal", name: "Principal's office", classes: [] },
+    staff: team,
+    invites: (invites.data ?? []).map((i) => ({ email: i.email, name: i.name, role: i.role as Role, classes: i.classes ?? [], createdAt: iso(i.created_at)! })),
+    access: (access.data ?? []).map((a) => ({ id: a.id, at: iso(a.at)!, actor: a.actor, role: a.role, action: a.action as AccessRow["action"], sid: a.sid, detail: a.detail })),
+    packs: (packs.data ?? []).map((p) => ({ id: p.id, sid: p.sid, createdAt: iso(p.created_at)!, expiresAt: iso(p.expires_at)!, revokedAt: iso(p.revoked_at), createdBy: p.created_by })),
     school: { name: s.name, city: s.city, slug: s.slug, noticeVersion: s.notice_version, breachPlan: s.breach_plan, dpo: s.dpo },
     students: Object.fromEntries(students.map((r) => [r.id, toStudent(r)])),
     requests: Object.fromEntries(requests.map((r) => [r.id, { id: r.id, sid: r.sid, type: r.type as RequestType, note: r.note, createdAt: iso(r.created_at)!, status: r.status as ParentRequest["status"], ...(r.done_at ? { doneAt: iso(r.done_at)! } : {}) }])),
@@ -202,7 +223,7 @@ async function loadParent(sid: string): Promise<DB> {
   const { data, error } = await supabase.rpc("parent_view", { _sid: sid });
   if (error) throw error;
   const v = data as unknown as ParentView;
-  const base: DB = { school: { name: "Sahmati", city: "", slug: "app", noticeVersion: "v1", breachPlan: false, dpo: "" }, students: {}, requests: {}, events: [], leads: [], breaches: [], vendors: [] };
+  const base: DB = { school: { name: "Sahmati", city: "", slug: "app", noticeVersion: "v1", breachPlan: false, dpo: "" }, students: {}, requests: {}, events: [], leads: [], breaches: [], vendors: [], staff: [], invites: [], access: [], packs: [], me: { role: "principal", name: "", classes: [] } };
   if (!v) return base;
   const st = v.student;
   return {
@@ -243,7 +264,7 @@ export const actions = {
     return append([["sent", sid, "Consent link sent on WhatsApp"]]);
   }),
   remindPending: () => write(async () => {
-    const pending = Object.values(db().students).filter((s) => s.status === "pending").map((s) => s.id);
+    const pending = Object.values(db().students).filter((s) => s.status === "pending" || s.status === "renewal").map((s) => s.id);
     if (pending.length) ok(await supabase.from("students").update({ sent_at: now() }).in("id", pending));
     return append([["remind", "-", `Reminder sent to ${pending.length} pending parents`]]);
   }),
@@ -323,6 +344,28 @@ export const actions = {
     set({ db: next });
     return e.seq;
   },
+  /** Marks the chosen parents "Renewal pending". Returns how many parents will be asked. */
+  startRenewal: (kind: "year" | "admissions" | "notice", since?: string) => write(async () => {
+    return ok(await supabase.rpc("start_renewal", { _school: schoolId!, _kind: kind, _since: since ?? null as unknown as string })) as number;
+  }),
+  /** Creates a private 7-day link; the token is only ever returned here. */
+  createPack: (sid: string) => write(async () => {
+    return ok(await supabase.rpc("create_pack", { _school: schoolId!, _sid: sid })) as unknown as { id: string; token: string; expiresAt: string };
+  }),
+  revokePack: (id: string) => write(async () => { ok(await supabase.rpc("revoke_pack", { _school: schoolId!, _id: id })); }),
+  inviteStaff: (f: { email: string; name: string; role: Role; classes: string[] }) => write(async () => {
+    ok(await supabase.rpc("invite_staff", { _school: schoolId!, _email: f.email, _name: f.name, _role: f.role, _classes: f.classes }));
+  }),
+  cancelInvite: (email: string) => write(async () => { ok(await supabase.rpc("cancel_invite", { _school: schoolId!, _email: email })); }),
+  setStaffRole: (userId: string, role: Role, classes: string[]) => write(async () => {
+    ok(await supabase.rpc("set_staff_role", { _school: schoolId!, _user: userId, _role: role, _classes: classes }));
+  }),
+  removeStaff: (userId: string) => write(async () => { ok(await supabase.rpc("remove_staff", { _school: schoolId!, _user: userId })); }),
+  /** Access log: views and exports. Changes are logged by the database itself. */
+  logAccess: (action: "view" | "export", sid: string, detail: string) => {
+    if (!schoolId || state.mode === "parent") return;
+    void supabase.rpc("log_access", { _school: schoolId, _action: action, _sid: sid, _detail: detail }).then(({ error }) => { if (error) console.error(error); });
+  },
   reset: () => write(async () => {
     if (state.mode !== "demo") return;
     ok(await supabase.rpc("reset_demo"));
@@ -357,4 +400,35 @@ export async function verifyLedger(events: LedgerEvent[]): Promise<{ ok: true; c
     prev = e.hash;
   }
   return { ok: true, count: events.length };
+}
+
+export type PackData = {
+  createdAt: string; expiresAt: string;
+  school: { name: string; city: string; slug: string; noticeVersion: string; dpo: string };
+  student: Student;
+  events: LedgerEvent[];
+  requests: ParentRequest[];
+  vendors: Vendor[];
+};
+
+/** Parent's private data pack link. Returns "expired" for revoked, expired or unknown links. */
+export async function loadPack(token: string): Promise<PackData | "expired"> {
+  const { data, error } = await supabase.rpc("pack_view", { _token: token });
+  if (error) throw error;
+  const v = data as unknown as { ok: boolean; createdAt: string; expiresAt: string; school: PackData["school"]; student: StudentRow & { consentAt: string | null; noticeAt: string | null }; events: Parameters<typeof toEvent>[0][]; requests: { id: string; sid: string; type: string; note: string; createdAt: string; status: string; doneAt: string | null }[]; vendors: { id: string; name: string; role: string; data: string[]; dpa: string; signedAt: string | null; review: string | null }[] };
+  if (!v.ok) return "expired";
+  return {
+    createdAt: v.createdAt, expiresAt: v.expiresAt, school: v.school,
+    student: toStudent({ ...v.student, sent_at: null, consent_at: v.student.consentAt, consent_notice: v.student.noticeAt }),
+    events: v.events.map(toEvent),
+    requests: v.requests.map((r) => ({ id: r.id, sid: r.sid, type: r.type as RequestType, note: r.note, createdAt: iso(r.createdAt)!, status: r.status as ParentRequest["status"], ...(r.doneAt ? { doneAt: iso(r.doneAt)! } : {}) })),
+    vendors: v.vendors.map((x) => ({ id: x.id, name: x.name, role: x.role, data: x.data, dpa: x.dpa as Vendor["dpa"], signedAt: iso(x.signedAt), review: iso(x.review) })),
+  };
+}
+
+export type PublicSchool = { name: string; city: string; slug: string; dpo: string; noticeVersion: string; updatedAt: string | null; checks: { title: string; ok: boolean }[] };
+export async function loadPublicSchool(slug: string): Promise<PublicSchool | null> {
+  const { data, error } = await supabase.rpc("public_school", { _slug: slug });
+  if (error) throw error;
+  return (data as unknown as PublicSchool) ?? null;
 }
