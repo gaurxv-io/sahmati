@@ -49,6 +49,7 @@ const PILL: Record<string, [string, string]> = {
   given: ["Consent given", "bg-green-soft text-green"],
   pending: ["Pending", "bg-amber-soft text-amber-ink"],
   withdrawn: ["Optional withdrawn", "bg-subtle text-muted"],
+  renewal: ["Renewal pending", "bg-amber-soft text-amber-ink"],
   open: ["Open", "bg-amber-soft text-amber-ink"],
   done: ["Resolved", "bg-green-soft text-green"],
   late: ["Overdue", "bg-danger-soft text-danger"],

@@ -55,7 +55,7 @@ export default function Parent() {
 
   if (!s) return <div className="min-h-screen">{header}<div className="mx-auto max-w-[460px] px-4 pt-5"><div className="rounded-xl border border-line bg-white p-4 text-ink-2">{t.invalid}</div></div></div>;
 
-  const done = s.status !== "pending" && !editing;
+  const done = s.status !== "pending" && s.status !== "renewal" && !editing;
   const lastEvent = db.events.filter((e) => e.sid === sid && ["consent", "update", "withdraw"].includes(e.type)).pop();
   const yn = (v: boolean) => <span className={`font-mono text-xs ${v ? "text-green" : "text-muted-2"}`}>{v ? t.yes : t.no}</span>;
 
