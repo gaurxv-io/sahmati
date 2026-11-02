@@ -6,6 +6,7 @@ import { chainString } from "./sample";
 import { sha256 } from "./hash";
 import { BREACH_STEPS } from "./derive";
 import { toast } from "@/components/toast";
+import { sendParentCode } from "./otp.functions";
 
 /**
  * Data store backed by Lovable Cloud. Public API (useDB, actions.*, verifyLedger) is unchanged.
@@ -247,10 +248,17 @@ export const actions = {
     return append([["remind", "-", `Reminder sent to ${pending.length} pending parents`]]);
   }),
   /** Parent consent: validated and written by the server in one step. */
-  giveConsent: (sid: string, choices: Student["choices"]) => write(async () => {
-    const r = ok(await supabase.rpc("give_consent", { _sid: sid, _web: choices.web, _newsletter: choices.newsletter }));
-    return toEvent(r!);
-  }),
+  /** Asks the server for a code. Demo school (or no SMS provider): the code comes back to show on screen. */
+  sendCode: (sid: string) => sendParentCode({ data: { sid } }),
+  /** Returns the ledger event, or an error key: bad | locked | expired | nocode | invalid. Never throws for a wrong code. */
+  giveConsent: async (sid: string, choices: Student["choices"], code: string): Promise<{ ok: true; event: LedgerEvent } | { ok: false; error: string }> => {
+    const r = await supabase.rpc("give_consent", { _sid: sid, _web: choices.web, _newsletter: choices.newsletter, _code: code });
+    if (r.error) fail(r.error);
+    const v = r.data as unknown as { ok: boolean; error?: string; event?: Parameters<typeof toEvent>[0] };
+    if (!v.ok) return { ok: false, error: v.error ?? "invalid" };
+    await refetch();
+    return { ok: true, event: toEvent(v.event!) };
+  },
   addRequest: (sid: string, type: RequestType, note: string) => write(async () => {
     ok(await supabase.rpc("parent_request", { _sid: sid, _type: type, _note: note }));
   }),
