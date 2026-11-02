@@ -1,122 +1,345 @@
 import { useSyncExternalStore } from "react";
+import type { RealtimeChannel, User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import type { Breach, DB, Lead, Vendor, LedgerEvent, ParentRequest, RequestType, School, Student } from "./types";
-import { buildSampleDB, chainString } from "./sample";
+import { chainString } from "./sample";
 import { sha256 } from "./hash";
 import { BREACH_STEPS } from "./derive";
+import { toast } from "@/components/toast";
 
 /**
- * Demo data store. Persists to localStorage and syncs across tabs, so the school console
- * and a parent consent link open in another tab update each other live.
- * Swap this module for Supabase (see supabase/schema.sql) to go multi-device.
+ * Data store backed by Lovable Cloud. Public API (useDB, actions.*, verifyLedger) is unchanged.
+ * Scope is chosen from the current path and the signed-in user:
+ *  - /c/:sid           -> parent view of one student (server functions only)
+ *  - /app* signed in   -> the user's own school (or the "Create your school" step)
+ *  - everything else   -> the demo school (Green Valley), open to everyone
+ * Ledger rows are only ever written by database functions, which compute seq/prev/hash.
  */
-const KEY = "sahmati-demo-v1";
-let db: DB | null = null;
-const listeners = new Set<() => void>();
-let queue: Promise<unknown> = Promise.resolve();
-let started = false;
+export type Mode = "demo" | "live" | "parent";
+export type StoreState = {
+  status: "loading" | "ready" | "error" | "onboard";
+  mode: Mode;
+  db: DB | null;
+  user: User | null;
+  error?: string;
+};
 
-function emit() { listeners.forEach((l) => l()); }
-function persist() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { /* storage unavailable: keep in memory */ } }
-function load(): DB | null { try { const raw = localStorage.getItem(KEY); return raw ? normalize(JSON.parse(raw) as DB) : null; } catch { return null; } }
-/** Older stored demos predate some fields; default them so nothing crashes. */
-function normalize(d: DB): DB { d.leads ??= []; d.breaches ??= []; d.vendors ??= []; d.requests ??= {}; return d; }
+let state: StoreState = { status: "loading", mode: "demo", db: null, user: null };
+let schoolId: string | null = null;
+let parentSid: string | null = null;
+let path = "/";
+let scopeKey = "";
+let token = 0;
+let channel: RealtimeChannel | null = null;
+let started = false;
+let refetchTimer: ReturnType<typeof setTimeout> | null = null;
+const listeners = new Set<() => void>();
+
+function set(patch: Partial<StoreState>) { state = { ...state, ...patch }; listeners.forEach((l) => l()); }
+const subscribe = (cb: () => void) => { listeners.add(cb); return () => { listeners.delete(cb); }; };
+
+export function useDB(): DB | null {
+  return useSyncExternalStore(subscribe, () => (state.status === "ready" ? state.db : null), () => null);
+}
+export function useStore(): StoreState {
+  return useSyncExternalStore(subscribe, () => state, () => state);
+}
 
 export async function initStore() {
   if (started || typeof window === "undefined") return;
   started = true;
-  db = load();
-  if (!db) { db = await buildSampleDB(); persist(); }
-  emit();
-  window.addEventListener("storage", (e) => { if (e.key === KEY) { db = load(); emit(); } });
-}
-
-export function useDB(): DB | null {
-  return useSyncExternalStore((cb) => { listeners.add(cb); return () => listeners.delete(cb); }, () => db, () => null);
-}
-
-function commit(next: DB) { db = next; persist(); emit(); }
-function run<T>(fn: () => Promise<T>): Promise<T> { const p = queue.then(fn); queue = p.catch(() => undefined); return p; }
-
-async function appendEvent(cur: DB, type: LedgerEvent["type"], sid: string, detail: string): Promise<LedgerEvent> {
-  const last = cur.events[cur.events.length - 1];
-  const e: LedgerEvent = { seq: last ? last.seq + 1 : 1, ts: new Date().toISOString(), type, sid, detail, prev: last ? last.hash : "GENESIS", hash: "" };
-  e.hash = await sha256(chainString(e.prev, e));
-  return e;
-}
-
-async function mutate(fn: (d: DB) => void, events: [LedgerEvent["type"], string, string][]) {
-  return run(async () => {
-    const next: DB = JSON.parse(JSON.stringify(db));
-    fn(next);
-    const added: LedgerEvent[] = [];
-    for (const [type, sid, detail] of events) { const e = await appendEvent(next, type, sid, detail); next.events.push(e); added.push(e); }
-    commit(next);
-    return added;
+  const { data } = await supabase.auth.getUser();
+  state = { ...state, user: data.user ?? null };
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+    const next = session?.user ?? null;
+    if (next?.id === state.user?.id && event !== "USER_UPDATED") return;
+    set({ user: next });
+    scopeKey = "";
+    void resolve();
   });
+  await resolve();
 }
 
+/** Called by the root on every navigation. */
+export function setRoute(p: string) {
+  path = p;
+  if (started) void resolve();
+}
+
+export function retry() { scopeKey = ""; void resolve(); }
+
+async function resolve() {
+  const parent = path.match(/^\/c\/([^/]+)/);
+  const wantsApp = path === "/app" || path.startsWith("/app/");
+  let key: string;
+  if (parent) key = `parent:${decodeURIComponent(parent[1])}`;
+  else if (wantsApp && state.user) key = `user:${state.user.id}`;
+  else key = "demo";
+  if (key === scopeKey) return;
+  scopeKey = key;
+  const my = ++token;
+  teardown();
+  set({ status: "loading", db: null, error: undefined });
+  try {
+    if (parent) {
+      parentSid = decodeURIComponent(parent[1]);
+      schoolId = null;
+      const db = await loadParent(parentSid);
+      if (my !== token) return;
+      set({ status: "ready", mode: "parent", db });
+      return;
+    }
+    parentSid = null;
+    let id: string | null;
+    let mode: Mode;
+    if (key.startsWith("user:")) {
+      const { data, error } = await supabase.from("school_staff").select("school_id").eq("user_id", state.user!.id).maybeSingle();
+      if (error) throw error;
+      if (my !== token) return;
+      if (!data) { schoolId = null; set({ status: "onboard", mode: "live", db: null }); return; }
+      id = data.school_id; mode = "live";
+    } else {
+      const { data, error } = await supabase.from("schools").select("id").eq("is_demo", true).limit(1).maybeSingle();
+      if (error) throw error;
+      if (!data) throw new Error("Demo school is missing");
+      id = data.id; mode = "demo";
+    }
+    schoolId = id;
+    const db = await loadSchool(id);
+    if (my !== token) return;
+    set({ status: "ready", mode, db });
+    listen(id);
+  } catch (e) {
+    if (my !== token) return;
+    console.error(e);
+    scopeKey = "";
+    set({ status: "error", db: null, error: e instanceof Error ? e.message : String(e) });
+  }
+}
+
+function teardown() {
+  if (channel) { void supabase.removeChannel(channel); channel = null; }
+  if (refetchTimer) { clearTimeout(refetchTimer); refetchTimer = null; }
+}
+
+function listen(id: string) {
+  const ch = supabase.channel(`school-${id}-${Math.random().toString(36).slice(2)}`);
+  for (const table of ["students", "ledger", "requests", "breaches", "vendors"] as const) {
+    ch.on("postgres_changes", { event: "*", schema: "public", table, filter: `school_id=eq.${id}` }, scheduleRefetch);
+  }
+  ch.on("postgres_changes", { event: "*", schema: "public", table: "schools", filter: `id=eq.${id}` }, scheduleRefetch);
+  channel = ch.subscribe();
+}
+
+function scheduleRefetch() {
+  if (refetchTimer) clearTimeout(refetchTimer);
+  refetchTimer = setTimeout(() => { refetchTimer = null; void refetch(); }, 250);
+}
+
+async function refetch() {
+  const my = token;
+  try {
+    if (parentSid) { const db = await loadParent(parentSid); if (my === token) set({ db }); return; }
+    if (!schoolId) return;
+    const db = await loadSchool(schoolId);
+    if (my === token) set({ db, status: "ready" });
+  } catch (e) { console.error(e); }
+}
+
+/* ---------- loading ---------- */
+
+async function all<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await page(from, from + 999);
+    if (error) throw error;
+    out.push(...(data ?? []));
+    if (!data || data.length < 1000) return out;
+  }
+}
+
+const iso = (v: string | null) => (v ? new Date(v).toISOString() : null);
+
+type StudentRow = { id: string; name: string; cls: string; sec: string; parent: string; phone: string; lang: string; status: string; choices: unknown; sent_at: string | null; consent_at: string | null; receipt: string | null };
+const toStudent = (r: StudentRow): Student => ({
+  id: r.id, name: r.name, cls: r.cls, sec: r.sec, parent: r.parent, phone: r.phone, lang: r.lang as Student["lang"],
+  status: r.status as Student["status"], choices: r.choices as Student["choices"], sentAt: iso(r.sent_at), consentAt: iso(r.consent_at), receipt: r.receipt,
+});
+const toEvent = (r: { seq: number; ts: string; type: string; sid: string; detail: string; prev: string; hash: string }): LedgerEvent => ({
+  seq: r.seq, ts: r.ts, type: r.type as LedgerEvent["type"], sid: r.sid, detail: r.detail, prev: r.prev, hash: r.hash,
+});
+
+async function loadSchool(id: string): Promise<DB> {
+  const [school, students, events, requests, breaches, vendors, leads] = await Promise.all([
+    supabase.from("schools").select("*").eq("id", id).single(),
+    all((a, b) => supabase.from("students").select("*").eq("school_id", id).order("id").range(a, b)),
+    all((a, b) => supabase.from("ledger").select("seq,ts,type,sid,detail,prev,hash").eq("school_id", id).order("seq").range(a, b)),
+    all((a, b) => supabase.from("requests").select("*").eq("school_id", id).order("created_at").range(a, b)),
+    supabase.from("breaches").select("*").eq("school_id", id).order("created_at"),
+    supabase.from("vendors").select("*").eq("school_id", id).order("id"),
+    supabase.from("leads").select("*").order("at"),
+  ]);
+  if (school.error) throw school.error;
+  if (breaches.error) throw breaches.error;
+  if (vendors.error) throw vendors.error;
+  const s = school.data;
+  return {
+    school: { name: s.name, city: s.city, slug: s.slug, noticeVersion: s.notice_version, breachPlan: s.breach_plan, dpo: s.dpo },
+    students: Object.fromEntries(students.map((r) => [r.id, toStudent(r)])),
+    requests: Object.fromEntries(requests.map((r) => [r.id, { id: r.id, sid: r.sid, type: r.type as RequestType, note: r.note, createdAt: iso(r.created_at)!, status: r.status as ParentRequest["status"], ...(r.done_at ? { doneAt: iso(r.done_at)! } : {}) }])),
+    events: events.map(toEvent),
+    leads: (leads.data ?? []).map((l) => ({ name: l.name, role: l.role, school: l.school, city: l.city, phone: l.phone, size: l.size, at: iso(l.at)!, ...(l.score != null ? { score: l.score } : {}), ...(l.gaps ? { gaps: l.gaps as string[] } : {}) })),
+    breaches: breaches.data.map((b) => ({ id: b.id, what: b.what, discoveredAt: iso(b.discovered_at)!, data: b.data as string[], count: b.count, cause: b.cause, createdAt: iso(b.created_at)!, steps: b.steps as (string | null)[], status: b.status as Breach["status"] })),
+    vendors: vendors.data.map((v) => ({ id: v.id, name: v.name, role: v.role, data: v.data as string[], dpa: v.dpa as Vendor["dpa"], signedAt: iso(v.signed_at), review: iso(v.review) })),
+  };
+}
+
+type ParentView = { school: { name: string; city: string; slug: string; noticeVersion: string }; student: StudentRow & { consentAt: string | null }; event: Parameters<typeof toEvent>[0] | null } | null;
+
+async function loadParent(sid: string): Promise<DB> {
+  const { data, error } = await supabase.rpc("parent_view", { _sid: sid });
+  if (error) throw error;
+  const v = data as unknown as ParentView;
+  const base: DB = { school: { name: "Sahmati", city: "", slug: "app", noticeVersion: "v1", breachPlan: false, dpo: "" }, students: {}, requests: {}, events: [], leads: [], breaches: [], vendors: [] };
+  if (!v) return base;
+  const st = v.student;
+  return {
+    ...base,
+    school: { ...base.school, ...v.school },
+    students: { [st.id]: toStudent({ ...st, sent_at: null, consent_at: st.consentAt }) },
+    events: v.event ? [toEvent(v.event)] : [],
+  };
+}
+
+/* ---------- writes ---------- */
+
+type Ev = [LedgerEvent["type"], string, string];
 const now = () => new Date().toISOString();
-const choicesText = (c: Student["choices"]) => `records yes, web ${c.web ? "yes" : "no"}, newsletter ${c.newsletter ? "yes" : "no"}`;
+
+function fail(e: unknown): never {
+  const msg = (e as { message?: string })?.message ?? String(e);
+  toast(msg.length < 140 ? msg : "Couldn't save. Check your connection and try again.");
+  throw e instanceof Error ? e : new Error(msg);
+}
+const ok = <T,>(r: { data: T; error: unknown }) => { if (r.error) fail(r.error); return r.data; };
+
+async function append(events: Ev[]): Promise<LedgerEvent[]> {
+  const r = await supabase.rpc("append_events", { _school: schoolId!, _events: events.map(([type, sid, detail]) => ({ type, sid, detail })) });
+  return (ok(r) ?? []).map(toEvent);
+}
+
+/** Runs a write, then refreshes immediately (realtime also refreshes other devices). Errors are shown as a toast. */
+async function write<T>(fn: () => Promise<T>): Promise<T> {
+  try { const out = await fn(); await refetch(); return out; }
+  catch (e) { if (!(e instanceof Error && e.message)) toast("Couldn't save. Check your connection and try again."); throw e; }
+}
+const db = () => state.db!;
 
 export const actions = {
-  markSent: (sid: string) => mutate((d) => { d.students[sid].sentAt = now(); }, [["sent", sid, "Consent link sent on WhatsApp"]]),
-  remindPending: () => {
-    const pending = Object.values(db!.students).filter((s) => s.status === "pending");
-    return mutate((d) => { pending.forEach((s) => { d.students[s.id].sentAt = now(); }); }, [["remind", "-", `Reminder sent to ${pending.length} pending parents`]]);
+  markSent: (sid: string) => write(async () => {
+    ok(await supabase.from("students").update({ sent_at: now() }).eq("id", sid));
+    return append([["sent", sid, "Consent link sent on WhatsApp"]]);
+  }),
+  remindPending: () => write(async () => {
+    const pending = Object.values(db().students).filter((s) => s.status === "pending").map((s) => s.id);
+    if (pending.length) ok(await supabase.from("students").update({ sent_at: now() }).in("id", pending));
+    return append([["remind", "-", `Reminder sent to ${pending.length} pending parents`]]);
+  }),
+  /** Parent consent: validated and written by the server in one step. */
+  giveConsent: (sid: string, choices: Student["choices"]) => write(async () => {
+    const r = ok(await supabase.rpc("give_consent", { _sid: sid, _web: choices.web, _newsletter: choices.newsletter }));
+    return toEvent(r);
+  }),
+  addRequest: (sid: string, type: RequestType, note: string) => write(async () => {
+    ok(await supabase.rpc("parent_request", { _sid: sid, _type: type, _note: note }));
+  }),
+  resolveRequest: (rid: string) => write(async () => {
+    const r = db().requests[rid];
+    ok(await supabase.from("requests").update({ status: "done", done_at: now() }).eq("school_id", schoolId!).eq("id", rid));
+    return append([["resolved", r.sid, `Parent request resolved: ${r.type}`]]);
+  }),
+  fileBreachPlan: () => write(async () => {
+    ok(await supabase.from("schools").update({ breach_plan: true }).eq("id", schoolId!));
+    return append([["plan", "-", "72-hour breach response plan filed"]]);
+  }),
+  publishNotice: () => write(async () => {
+    const v = "v" + (parseInt(db().school.noticeVersion.replace(/\D/g, "") || "0", 10) + 1);
+    ok(await supabase.from("schools").update({ notice_version: v }).eq("id", schoolId!));
+    return append([["notice", "-", `Privacy notice ${v} published (EN, HI)`]]);
+  }),
+  updateSchool: (patch: Partial<School>) => write(async () => {
+    const row: { name?: string; city?: string; dpo?: string } = {};
+    if (patch.name !== undefined) row.name = patch.name;
+    if (patch.city !== undefined) row.city = patch.city;
+    if (patch.dpo !== undefined) row.dpo = patch.dpo;
+    ok(await supabase.from("schools").update(row).eq("id", schoolId!));
+  }),
+  importStudents: (rows: Omit<Student, "id" | "status" | "choices" | "sentAt" | "consentAt" | "receipt">[]) => write(async () => {
+    ok(await supabase.rpc("import_students", { _school: schoolId!, _rows: rows }));
+  }),
+  addLead: async (lead: Omit<Lead, "at">) => {
+    const r = await supabase.from("leads").insert({ name: lead.name, role: lead.role, school: lead.school, city: lead.city, phone: lead.phone, size: lead.size, score: lead.score ?? null, gaps: lead.gaps ?? null });
+    if (r.error) fail(r.error);
+    if (schoolId) await refetch();
   },
-  giveConsent: async (sid: string, choices: Student["choices"]) => {
-    const was = db!.students[sid].status !== "pending";
-    const added = await mutate((d) => {
-      const s = d.students[sid];
-      s.choices = choices;
-      s.status = was && !choices.web && !choices.newsletter ? "withdrawn" : "given";
-      s.consentAt = now();
-      s.receipt = s.receipt || `SAH-${s.id.slice(1)}-${String(Date.now()).slice(-4)}`;
-    }, [[was ? "update" : "consent", sid, `${was ? "Consent updated" : "Consent given"}, verified by OTP · ${choicesText(choices)}`]]);
-    return added[0];
-  },
-  addRequest: (sid: string, type: RequestType, note: string) => {
-    const r: ParentRequest = { id: "r" + String(Date.now()).slice(-7), sid, type, note, createdAt: now(), status: "open" };
-    return mutate((d) => { d.requests[r.id] = r; }, [["request", sid, `Parent request: ${type}`]]);
-  },
-  resolveRequest: (rid: string) => {
-    const r = db!.requests[rid];
-    return mutate((d) => { d.requests[rid].status = "done"; d.requests[rid].doneAt = now(); }, [["resolved", r.sid, `Parent request resolved: ${r.type}`]]);
-  },
-  fileBreachPlan: () => mutate((d) => { d.school.breachPlan = true; }, [["plan", "-", "72-hour breach response plan filed"]]),
-  publishNotice: () => {
-    const v = "v" + (parseInt(db!.school.noticeVersion.replace(/\D/g, "") || "0", 10) + 1);
-    return mutate((d) => { d.school.noticeVersion = v; }, [["notice", "-", `Privacy notice ${v} published (EN, HI)`]]);
-  },
-  updateSchool: (patch: Partial<School>) => run(async () => { const next: DB = JSON.parse(JSON.stringify(db)); next.school = { ...next.school, ...patch }; commit(next); }),
-  importStudents: (rows: Omit<Student, "id" | "status" | "choices" | "sentAt" | "consentAt" | "receipt">[]) => {
-    const n = Object.keys(db!.students).length;
-    return mutate((d) => {
-      rows.forEach((r, i) => {
-        const id = "s" + String(n + i + 1).padStart(3, "0");
-        d.students[id] = { ...r, id, status: "pending", choices: { records: true, web: false, newsletter: false }, sentAt: null, consentAt: null, receipt: null };
-      });
-    }, [["import", "-", `${rows.length} students imported from spreadsheet`]]);
-  },
-  addLead: (lead: Omit<Lead, "at">) => run(async () => { const next: DB = JSON.parse(JSON.stringify(db)); next.leads.push({ ...lead, at: now() }); commit(next); }),
-  reportBreach: (b: Omit<Breach, "id" | "createdAt" | "steps" | "status">) => {
+  reportBreach: (b: Omit<Breach, "id" | "createdAt" | "steps" | "status">) => write(async () => {
     const id = "b" + String(Date.now()).slice(-6);
-    return mutate((d) => { d.breaches.push({ ...b, id, createdAt: now(), steps: BREACH_STEPS.map(() => null), status: "open" }); }, [["breach", "-", `Data breach logged · ${b.cause} · about ${b.count} students`]]).then(() => id);
+    ok(await supabase.from("breaches").insert({ school_id: schoolId!, id, what: b.what, discovered_at: b.discoveredAt, data: b.data, count: b.count, cause: b.cause, steps: BREACH_STEPS.map(() => null), status: "open" }));
+    await append([["breach", "-", `Data breach logged · ${b.cause} · about ${b.count} students`]]);
+    return id;
+  }),
+  breachStep: (id: string, i: number) => write(async () => {
+    const b = db().breaches.find((x) => x.id === id)!;
+    const steps = b.steps.slice(); steps[i] = now();
+    ok(await supabase.from("breaches").update({ steps, status: steps.every(Boolean) ? "closed" : "open" }).eq("school_id", schoolId!).eq("id", id));
+    return append([["breachstep", "-", `Breach ${id.toUpperCase()}: ${BREACH_STEPS[i][0]} done`]]);
+  }),
+  addVendor: (v: Omit<Vendor, "id">) => write(async () => {
+    ok(await supabase.from("vendors").insert({ school_id: schoolId!, id: "v" + String(Date.now()).slice(-6), name: v.name, role: v.role, data: v.data, dpa: v.dpa, signed_at: v.signedAt, review: v.review }));
+    return append([["vendor", "-", `Vendor added: ${v.name} · DPA ${v.dpa}`]]);
+  }),
+  signDpa: (id: string) => write(async () => {
+    const v = db().vendors.find((x) => x.id === id)!;
+    ok(await supabase.from("vendors").update({ dpa: "signed", signed_at: now(), review: new Date(Date.now() + 365 * 86400000).toISOString() }).eq("school_id", schoolId!).eq("id", id));
+    return append([["vendor", "-", `DPA signed with ${v.name}`]]);
+  }),
+  /**
+   * Demo only: the stored ledger is append-only, so this edits this screen's copy of a past
+   * record without re-hashing, to show Verify chain catching it. The next refresh restores it.
+   */
+  tamper: async () => {
+    const next: DB = JSON.parse(JSON.stringify(state.db));
+    const e = next.events[Math.floor(next.events.length / 2)];
+    e.detail = e.detail.replace("web no", "web yes") + " ";
+    set({ db: next });
+    return e.seq;
   },
-  breachStep: (id: string, i: number) => mutate((d) => {
-    const b = d.breaches.find((x) => x.id === id)!;
-    b.steps[i] = now();
-    if (b.steps.every(Boolean)) b.status = "closed";
-  }, [["breachstep", "-", `Breach ${id.toUpperCase()}: ${BREACH_STEPS[i][0]} done`]]),
-  addVendor: (v: Omit<Vendor, "id">) => mutate((d) => { d.vendors.push({ ...v, id: "v" + String(Date.now()).slice(-6) }); }, [["vendor", "-", `Vendor added: ${v.name} · DPA ${v.dpa}`]]),
-  signDpa: (id: string) => {
-    const v = db!.vendors.find((x) => x.id === id)!;
-    return mutate((d) => { const x = d.vendors.find((y) => y.id === id)!; x.dpa = "signed"; x.signedAt = now(); x.review = new Date(Date.now() + 365 * 86400000).toISOString(); }, [["vendor", "-", `DPA signed with ${v.name}`]]);
-  },
-  /** Demo only: edits a past record without re-hashing, to show the chain catching it. */
-  tamper: () => run(async () => { const next: DB = JSON.parse(JSON.stringify(db)); const e = next.events[Math.floor(next.events.length / 2)]; e.detail = e.detail.replace("web no", "web yes") + " "; commit(next); return e.seq; }),
-  reset: () => run(async () => { commit(await buildSampleDB()); }),
+  reset: () => write(async () => {
+    if (state.mode !== "demo") return;
+    ok(await supabase.rpc("reset_demo"));
+  }),
 };
+
+/** "Create your school" after first sign-in. */
+export async function createSchool(f: { name: string; city: string; slug: string; dpo: string }) {
+  const r = await supabase.rpc("create_school", { _name: f.name, _city: f.city, _slug: f.slug, _dpo: f.dpo });
+  if (r.error) throw new Error(r.error.message);
+  scopeKey = "";
+  await resolve();
+}
+
+export async function signOut() {
+  await supabase.auth.signOut();
+}
+
+/** Public receipt check: only that receipt's record and whether the school's chain verifies. */
+export async function checkReceipt(receipt: string): Promise<{ school: string; student: Pick<Student, "name" | "cls" | "sec" | "receipt">; event: LedgerEvent | null; chainOk: boolean } | null> {
+  const { data, error } = await supabase.rpc("verify_receipt", { _receipt: receipt });
+  if (error) throw error;
+  const v = data as unknown as { school: string; student: Pick<Student, "name" | "cls" | "sec" | "receipt">; event: Parameters<typeof toEvent>[0] | null; chainOk: boolean } | null;
+  return v ? { ...v, event: v.event ? toEvent(v.event) : null } : null;
+}
 
 export async function verifyLedger(events: LedgerEvent[]): Promise<{ ok: true; count: number } | { ok: false; seq: number }> {
   let prev = "GENESIS";
