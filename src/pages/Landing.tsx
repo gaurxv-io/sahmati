@@ -157,7 +157,7 @@ export default function Landing() {
         <div className="grid gap-4 md:grid-cols-3">
           {([
             ["/app", "School console", "Consent register, WhatsApp reminders, parent requests and the readiness checklist."],
-            ["/c/s003", "Parent consent page", "What a parent opens from WhatsApp. English and Hindi, OTP verified, no app to install."],
+            ["/c/$sid", "Parent consent page", "What a parent opens from WhatsApp. English and Hindi, OTP verified, no app to install."],
             ["/app/ledger", "Tamper-evident ledger", "Every consent is hash-chained. Try editing a record and watch verification catch it."],
           ] as const).map(([to, t, p]) => (
             <Link key={to} to={to} className="group flex flex-col gap-3 rounded-xl border border-line bg-white p-6 text-ink hover:text-ink hover:shadow-card">

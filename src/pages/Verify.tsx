@@ -49,7 +49,7 @@ export default function Verify() {
             </dl>
           </div>
         )}
-        <p className="text-xs text-muted-2">Try receipt <Link to="/verify/SAH-002-LKGB" className="font-mono">SAH-002-LKGB</Link> from the sample school.</p>
+        <p className="text-xs text-muted-2">Try receipt <Link to="/verify/$receipt" params={{ receipt: "SAH-002-LKGB" }} className="font-mono">SAH-002-LKGB</Link> from the sample school.</p>
       </main>
     </div>
   );
