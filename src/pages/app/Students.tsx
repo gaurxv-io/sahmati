@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { Check, Eye, FileText, MessageCircle, RefreshCw, Search, Upload, X } from "lucide-react";
+import { Check, Eye, FileSignature, FileText, MessageCircle, RefreshCw, Search, Upload, X } from "lucide-react";
 import { Pill } from "@/components/brand";
 import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
 import { BANDS, band, can, clsLabel, maskPhone, olderNotice, shortDate, sortedStudents, stats, waHref } from "@/lib/derive";
 import type { ConsentStatus, Lang } from "@/lib/types";
 import { PageHead } from "./Layout";
+import { LANGS, isLang } from "@/lib/i18n";
+import PaperConsent from "./PaperConsent";
 
 type Filter = "all" | ConsentStatus;
 type SP = { status?: string; remind?: string; import?: string; drive?: string };
@@ -21,6 +23,7 @@ export default function Students() {
   const filter = (params.status as Filter) || "all";
   const drawer = params.remind ? "remind" : params.import ? "import" : params.drive ? "drive" : null;
   const perm = can(db);
+  const [paperSid, setPaperSid] = useState<string | null>(null);
   const [drive, setDrive] = useState<Drive>("year");
   const [since, setSince] = useState("2026-10-01");
   const [bandSel, setBand] = useState("all");
@@ -48,7 +51,7 @@ export default function Students() {
     const rows = lines.flatMap((l) => {
       const c = l.split(",").map((x) => x.trim());
       if (c.length < 5 || !/^\d{10}$/.test(c[4])) { skipped++; return []; }
-      return [{ name: c[0], cls: c[1], sec: c[2] || "A", parent: c[3], phone: c[4], lang: ((c[5] || "en").toLowerCase() === "hi" ? "hi" : "en") as Lang }];
+      return [{ name: c[0], cls: c[1], sec: c[2] || "A", parent: c[3], phone: c[4], lang: (isLang((c[5] || "en").toLowerCase()) ? (c[5] || "en").toLowerCase() : "en") as Lang }];
     });
     if (!rows.length) { toast("No valid rows. Check the column order and 10-digit mobile numbers."); return; }
     await actions.importStudents(rows);
@@ -102,7 +105,7 @@ export default function Students() {
           <div className="max-h-[300px] overflow-auto border-t border-line">
             {pending.map((s) => (
               <div key={s.id} className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line px-[18px] py-2.5 text-[13px] last:border-b-0">
-                <span><b className="font-semibold">{s.parent}</b> <span className="text-muted-2">for {s.name} · {clsLabel(s)}</span><br /><span className="font-mono text-[11.5px] text-muted-2">{maskPhone(s.phone)} · {s.lang === "hi" ? "HINDI" : "ENGLISH"}</span></span>
+                <span><b className="font-semibold">{s.parent}</b> <span className="text-muted-2">for {s.name} · {clsLabel(s)}</span><br /><span className="font-mono text-[11.5px] text-muted-2">{maskPhone(s.phone)} · {(LANGS[s.lang]?.name ?? "English").toUpperCase()}</span></span>
                 <a className="btn btn-sm" target="_blank" rel="noopener" href={waHref(db, s, true)}><MessageCircle className="h-3.5 w-3.5" />WhatsApp</a>
               </div>
             ))}
@@ -122,6 +125,8 @@ export default function Students() {
           </div>
         </div>
       )}
+
+      {paperSid && db.students[paperSid] && <PaperConsent s={db.students[paperSid]} onClose={() => setPaperSid(null)} />}
 
       <div className="panel">
         <div className="flex flex-wrap items-center gap-2 border-b border-line px-3.5 py-3">
@@ -146,11 +151,12 @@ export default function Students() {
                   <tr key={s.id} className="hover:bg-[#FBFCFB] [&:last-child>td]:border-b-0">
                     <td className="td"><b className="font-semibold text-ink">{s.name}</b><div className="font-mono text-[11.5px] text-muted-2">{clsLabel(s)}</div></td>
                     <td className="td">{s.parent}<div className="font-mono text-[11.5px] text-muted-2">{maskPhone(s.phone)} · {s.lang.toUpperCase()}</div></td>
-                    <td className="td"><Pill kind={s.status} /></td>
+                    <td className="td"><span className="inline-flex flex-wrap items-center gap-1"><Pill kind={s.status} />{s.paper && (s.paperFile && perm.write ? <button className="tag" title="View the signed paper form" onClick={async () => window.open(await actions.paperUrl(s.paperFile!), "_blank")}>PAPER</button> : <span className="tag">PAPER</span>)}</span></td>
                     <td className="td"><span className="inline-flex gap-1"><span className={`tag ${on ? "tag-on" : ""}`} title="School records">REC</span><span className={`tag ${on && s.choices.web ? "tag-on" : ""}`} title="Photos on website and social media">WEB</span><span className={`tag ${on && s.choices.newsletter ? "tag-on" : ""}`} title="Newsletter photos">NEWS</span></span></td>
                     <td className="td whitespace-nowrap text-xs text-muted-2">{s.consentAt ? `Consented ${shortDate(s.consentAt)}` : s.sentAt ? `Link sent ${shortDate(s.sentAt)}` : "Not contacted"}</td>
                     <td className="td"><div className="flex justify-end gap-1.5">
                       {(s.status === "pending" || s.status === "renewal") && perm.write && <a className="btn btn-sm" target="_blank" rel="noopener" href={waHref(db, s)} onClick={() => actions.markSent(s.id)}><MessageCircle className="h-3.5 w-3.5" />Send</a>}
+                      {(s.status === "pending" || s.status === "renewal") && perm.write && <button className="btn btn-ghost btn-sm" onClick={() => { setPaperSid(s.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}><FileSignature className="h-3.5 w-3.5" />Paper consent</button>}
                       <Link className="btn btn-ghost btn-sm" to="/app/students/$sid/pack" params={{ sid: s.id }} title="Prepare data pack"><FileText className="h-3.5 w-3.5" />Data pack</Link>
                       <Link className="btn btn-ghost btn-sm" to="/c/$sid" params={{ sid: s.id }} title="Open what the parent sees"><Eye className="h-3.5 w-3.5" />Parent view</Link>
                     </div></td>

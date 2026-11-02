@@ -4,6 +4,8 @@ import { Copy, Download, ExternalLink } from "lucide-react";
 import QRCode from "qrcode";
 import { copyText } from "@/lib/clipboard";
 import { can, olderNotice, publicLink } from "@/lib/derive";
+import NoticeDrafter from "./NoticeDrafter";
+import { DigestPanel, GroupPanel, LanguagesPanel } from "./SettingsExtra";
 import { toast } from "@/components/toast";
 import { Pill } from "@/components/brand";
 import { actions, useDB } from "@/lib/store";
@@ -35,11 +37,15 @@ export default function Settings() {
           </label>
           <button className="btn btn-primary w-fit" onClick={save}>Save changes</button>
         </div>
+        <LanguagesPanel />
+        <DigestPanel />
+        <GroupPanel />
         <div className="flex flex-col gap-4">
           <div className="panel flex flex-col gap-3 p-[18px]">
             <div className="flex items-center justify-between"><h2 className="text-base font-semibold">Privacy notice</h2><span className="font-mono text-xs text-muted-2">CURRENT · {db.school.noticeVersion.toUpperCase()}</span></div>
             <p className="text-[13px] text-muted">Parents see this notice in English and Hindi before they consent. Publishing a new version is logged in the consent ledger, and every consent records which version the parent saw.</p>
-            {perm.admin && <button className="btn w-fit" onClick={async () => { await actions.publishNotice(); toast("New notice version published"); setPrompt(true); }}>Publish new version</button>}
+            {perm.admin && <NoticeDrafter onPublished={() => setPrompt(true)} />}
+            {perm.admin && <button className="btn btn-ghost btn-sm w-fit" onClick={async () => { await actions.publishNotice(); toast("New notice version published"); setPrompt(true); }}>Publish new version without changes</button>}
             {prompt && older > 0 && (
               <div className="flex flex-col gap-2 rounded-[10px] border border-amber/40 bg-amber-soft px-3.5 py-3 text-[13px] text-amber-ink">
                 <span><b className="font-semibold">{older} parents consented to an older notice.</b> Start a renewal drive?</span>

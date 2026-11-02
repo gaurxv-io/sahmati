@@ -117,6 +117,56 @@ export type Database = {
         }
         Relationships: []
       }
+      group_admins: {
+        Row: {
+          created_at: string
+          group_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_admins_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          id: string
+          is_demo: boolean
+          join_code: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          join_code?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          join_code?: string
+          name?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           at: string
@@ -190,6 +240,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ledger_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notices: {
+        Row: {
+          content: Json
+          published_at: string
+          published_by: string
+          school_id: string
+          version: string
+        }
+        Insert: {
+          content: Json
+          published_at?: string
+          published_by?: string
+          school_id: string
+          version: string
+        }
+        Update: {
+          content?: Json
+          published_at?: string
+          published_by?: string
+          school_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notices_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
@@ -363,9 +445,13 @@ export type Database = {
           breach_plan: boolean
           city: string
           created_at: string
+          digest_email: boolean
+          digest_email_to: string
           dpo: string
+          group_id: string | null
           id: string
           is_demo: boolean
+          languages: string[]
           name: string
           notice_version: string
           slug: string
@@ -374,9 +460,13 @@ export type Database = {
           breach_plan?: boolean
           city?: string
           created_at?: string
+          digest_email?: boolean
+          digest_email_to?: string
           dpo?: string
+          group_id?: string | null
           id?: string
           is_demo?: boolean
+          languages?: string[]
           name: string
           notice_version?: string
           slug: string
@@ -385,14 +475,26 @@ export type Database = {
           breach_plan?: boolean
           city?: string
           created_at?: string
+          digest_email?: boolean
+          digest_email_to?: string
           dpo?: string
+          group_id?: string | null
           id?: string
           is_demo?: boolean
+          languages?: string[]
           name?: string
           notice_version?: string
           slug?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "schools_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff_invites: {
         Row: {
@@ -439,6 +541,9 @@ export type Database = {
           id: string
           lang: string
           name: string
+          paper: boolean
+          paper_file: string | null
+          paper_hash: string | null
           parent: string
           phone: string
           receipt: string | null
@@ -456,6 +561,9 @@ export type Database = {
           id: string
           lang?: string
           name: string
+          paper?: boolean
+          paper_file?: string | null
+          paper_hash?: string | null
           parent: string
           phone: string
           receipt?: string | null
@@ -473,6 +581,9 @@ export type Database = {
           id?: string
           lang?: string
           name?: string
+          paper?: boolean
+          paper_file?: string | null
+          paper_hash?: string | null
           parent?: string
           phone?: string
           receipt?: string | null
@@ -595,6 +706,22 @@ export type Database = {
         Returns: string
       }
       _seed_demo: { Args: never; Returns: undefined }
+      _seed_demo_school: {
+        Args: {
+          _breach: boolean
+          _city: string
+          _g: string
+          _given: number
+          _n: number
+          _name: string
+          _open_req: number
+          _overdue: number
+          _plan: boolean
+          _prefix: string
+          _slug: string
+        }
+        Returns: undefined
+      }
       _who: { Args: { _school: string }; Returns: string[] }
       accept_invite: { Args: never; Returns: string }
       append_events: {
@@ -618,6 +745,7 @@ export type Database = {
       }
       can_access: { Args: { _school: string }; Returns: boolean }
       can_admin: { Args: { _school: string }; Returns: boolean }
+      can_group: { Args: { _group: string }; Returns: boolean }
       can_see_cls: { Args: { _cls: string; _school: string }; Returns: boolean }
       can_see_sid: { Args: { _school: string; _sid: string }; Returns: boolean }
       can_write: { Args: { _school: string }; Returns: boolean }
@@ -626,6 +754,10 @@ export type Database = {
         Returns: undefined
       }
       chain_ok: { Args: { _school: string }; Returns: boolean }
+      create_group: {
+        Args: { _name: string; _school: string }
+        Returns: string
+      }
       create_pack: { Args: { _school: string; _sid: string }; Returns: Json }
       create_school: {
         Args: { _city: string; _dpo: string; _name: string; _slug: string }
@@ -640,6 +772,7 @@ export type Database = {
         }
         Returns: Json
       }
+      group_overview: { Args: { _group: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -662,6 +795,10 @@ export type Database = {
         Returns: undefined
       }
       iso_now: { Args: never; Returns: string }
+      join_group: {
+        Args: { _code: string; _school: string }
+        Returns: undefined
+      }
       log_access: {
         Args: {
           _action: string
@@ -679,12 +816,33 @@ export type Database = {
         Returns: Json
       }
       pack_view: { Args: { _token: string }; Returns: Json }
+      paper_access: {
+        Args: { _name: string; _write: boolean }
+        Returns: boolean
+      }
       parent_request: {
         Args: { _note: string; _sid: string; _type: string }
         Returns: undefined
       }
       parent_view: { Args: { _sid: string }; Returns: Json }
       public_school: { Args: { _slug: string }; Returns: Json }
+      publish_notice: {
+        Args: { _content: Json; _school: string }
+        Returns: string
+      }
+      record_paper_consent: {
+        Args: {
+          _date: string
+          _file: string
+          _hash: string
+          _newsletter: boolean
+          _school: string
+          _sid: string
+          _web: boolean
+          _witness: string
+        }
+        Returns: Json
+      }
       remove_staff: {
         Args: { _school: string; _user: string }
         Returns: undefined
@@ -692,6 +850,14 @@ export type Database = {
       reset_demo: { Args: never; Returns: undefined }
       revoke_pack: {
         Args: { _id: string; _school: string }
+        Returns: undefined
+      }
+      set_digest: {
+        Args: { _on: boolean; _school: string; _to: string }
+        Returns: undefined
+      }
+      set_languages: {
+        Args: { _langs: string[]; _school: string }
         Returns: undefined
       }
       set_staff_role: {

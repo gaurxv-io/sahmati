@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { MSG, fill } from "@/lib/i18n";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { AlertTriangle, Check, Copy, MessageCircle, X } from "lucide-react";
 import { Pill } from "@/components/brand";
@@ -37,7 +38,8 @@ Contact: ${db.school.dpo}, ${db.school.name}`;
 export function parentDraft(db: DB, b: BreachT) {
   const en = `Dear parent, ${db.school.name} found that some of your child's information (${b.data.join(", ").toLowerCase() || "details"}) was exposed: ${b.what.toLowerCase()}. We have stopped further access and informed the Data Protection Board. Please be careful of unexpected calls or messages that mention your child. For questions, contact ${db.school.dpo}.`;
   const hi = `प्रिय अभिभावक, ${db.school.name} को पता चला है कि आपके बच्चे की कुछ जानकारी गलती से उजागर हुई है। हमने आगे की पहुँच रोक दी है और डेटा संरक्षण बोर्ड को सूचित कर दिया है। कृपया आपके बच्चे के नाम से आने वाले अनजान कॉल या संदेशों से सावधान रहें। सवालों के लिए ${db.school.dpo} से संपर्क करें।`;
-  return `${en}\n\n${hi}`;
+  const more = (db.school.languages ?? []).filter((l) => l !== "en" && l !== "hi").map((l) => fill(MSG[l].breach, { school: db.school.name, dpo: db.school.dpo }));
+  return [en, hi, ...more].join("\n\n");
 }
 
 function Countdown({ b }: { b: BreachT }) {

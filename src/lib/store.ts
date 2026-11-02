@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import type { RealtimeChannel, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import type { AccessRow, Breach, DB, Lead, Vendor, LedgerEvent, ParentRequest, RequestType, Role, School, Student } from "./types";
+import type { NoticeContent, Lang, AccessRow, Breach, DB, Lead, Vendor, LedgerEvent, ParentRequest, RequestType, Role, School, Student } from "./types";
 import { chainString } from "./sample";
 import { sha256 } from "./hash";
 import { BREACH_STEPS } from "./derive";
@@ -68,15 +68,23 @@ export function setRoute(p: string) {
   if (started) void resolve();
 }
 
+/** Opens another school's console (group view, or a group admin switching schools). */
+export function openSchool(slug: string) {
+  window.sessionStorage.setItem("sahmati.school", slug);
+  scopeKey = "";
+  void resolve();
+}
+
 export function retry() { scopeKey = ""; void resolve(); }
 
 async function resolve() {
   const parent = path.match(/^\/c\/([^/]+)/);
-  const wantsApp = path === "/app" || path.startsWith("/app/");
+  const wantsApp = path === "/app" || path.startsWith("/app/") || path === "/group";
+  const pick = typeof window !== "undefined" ? window.sessionStorage.getItem("sahmati.school") ?? "" : "";
   let key: string;
   if (parent) key = `parent:${decodeURIComponent(parent[1])}`;
-  else if (wantsApp && state.user) key = `user:${state.user.id}`;
-  else key = "demo";
+  else if (wantsApp && state.user) key = `user:${state.user.id}:${pick}`;
+  else key = `demo:${pick}`;
   if (key === scopeKey) return;
   scopeKey = key;
   const my = ++token;
@@ -94,11 +102,16 @@ async function resolve() {
     parentSid = null;
     let id: string | null;
     let mode: Mode;
+    const picked = pick ? (await supabase.from("schools").select("id,is_demo").eq("slug", pick).maybeSingle()).data : null;
     if (key.startsWith("user:")) {
       const { data, error } = await supabase.from("school_staff").select("school_id").eq("user_id", state.user!.id).maybeSingle();
       if (error) throw error;
-      if (my !== token) return;
-      let mine = data?.school_id ?? null;
+      let mine = picked && !picked.is_demo ? picked.id : data?.school_id ?? null;
+      if (!mine) {
+        // Group admins without their own school open the first school in their group.
+        const ga = await supabase.from("group_admins").select("group_id").eq("user_id", state.user!.id).limit(1).maybeSingle();
+        if (ga.data) mine = (await supabase.from("schools").select("id").eq("group_id", ga.data.group_id).order("name").limit(1).maybeSingle()).data?.id ?? null;
+      }
       if (!mine) {
         // Invited staff join their school on first sign-in.
         const inv = await supabase.rpc("accept_invite");
@@ -109,10 +122,13 @@ async function resolve() {
       if (!mine) { schoolId = null; set({ status: "onboard", mode: "live", db: null }); return; }
       id = mine; mode = "live";
     } else {
-      const { data, error } = await supabase.from("schools").select("id").eq("is_demo", true).limit(1).maybeSingle();
-      if (error) throw error;
-      if (!data) throw new Error("Demo school is missing");
-      id = data.id; mode = "demo";
+      if (picked?.is_demo) { id = picked.id; } else {
+        const { data, error } = await supabase.from("schools").select("id").eq("slug", "greenvalley").maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error("Demo school is missing");
+        id = data.id;
+      }
+      mode = "demo";
     }
     schoolId = id;
     const db = await loadSchool(id);
@@ -134,7 +150,7 @@ function teardown() {
 
 function listen(id: string) {
   const ch = supabase.channel(`school-${id}-${Math.random().toString(36).slice(2)}`);
-  for (const table of ["students", "ledger", "requests", "breaches", "vendors", "school_staff", "staff_invites", "access_log", "packs"] as const) {
+  for (const table of ["students", "ledger", "requests", "breaches", "vendors", "school_staff", "staff_invites", "access_log", "packs", "notices"] as const) {
     ch.on("postgres_changes", { event: "*", schema: "public", table, filter: `school_id=eq.${id}` }, scheduleRefetch);
   }
   ch.on("postgres_changes", { event: "*", schema: "public", table: "schools", filter: `id=eq.${id}` }, scheduleRefetch);
@@ -170,11 +186,12 @@ async function all<T>(page: (from: number, to: number) => PromiseLike<{ data: T[
 
 const iso = (v: string | null) => (v ? new Date(v).toISOString() : null);
 
-type StudentRow = { id: string; name: string; cls: string; sec: string; parent: string; phone: string; lang: string; status: string; choices: unknown; sent_at: string | null; consent_at: string | null; receipt: string | null; created_at?: string | null; consent_notice?: string | null };
+type StudentRow = { id: string; name: string; cls: string; sec: string; parent: string; phone: string; lang: string; status: string; choices: unknown; sent_at: string | null; consent_at: string | null; receipt: string | null; created_at?: string | null; consent_notice?: string | null; paper?: boolean | null; paper_file?: string | null; paper_hash?: string | null };
 const toStudent = (r: StudentRow): Student => ({
   id: r.id, name: r.name, cls: r.cls, sec: r.sec, parent: r.parent, phone: r.phone, lang: r.lang as Student["lang"],
   status: r.status as Student["status"], choices: r.choices as Student["choices"], sentAt: iso(r.sent_at), consentAt: iso(r.consent_at), receipt: r.receipt,
   ...(r.created_at ? { createdAt: iso(r.created_at)! } : {}), noticeAt: r.consent_notice ?? null,
+  paper: !!r.paper, paperFile: r.paper_file ?? null, paperHash: r.paper_hash ?? null,
 });
 const toEvent = (r: { seq: number; ts: string; type: string; sid: string; detail: string; prev: string; hash: string }): LedgerEvent => ({
   seq: r.seq, ts: r.ts, type: r.type as LedgerEvent["type"], sid: r.sid, detail: r.detail, prev: r.prev, hash: r.hash,
@@ -195,6 +212,7 @@ async function loadSchool(id: string): Promise<DB> {
     supabase.from("access_log").select("*").eq("school_id", id).order("at", { ascending: false }).limit(1000),
     supabase.from("packs").select("id,sid,created_at,expires_at,revoked_at,created_by").eq("school_id", id).order("created_at", { ascending: false }),
   ]);
+  const notice = school.data ? (await supabase.from("notices").select("content").eq("school_id", id).eq("version", school.data.notice_version).maybeSingle()).data : null;
   if (school.error) throw school.error;
   if (breaches.error) throw breaches.error;
   if (vendors.error) throw vendors.error;
@@ -207,7 +225,8 @@ async function loadSchool(id: string): Promise<DB> {
     invites: (invites.data ?? []).map((i) => ({ email: i.email, name: i.name, role: i.role as Role, classes: i.classes ?? [], createdAt: iso(i.created_at)! })),
     access: (access.data ?? []).map((a) => ({ id: a.id, at: iso(a.at)!, actor: a.actor, role: a.role, action: a.action as AccessRow["action"], sid: a.sid, detail: a.detail })),
     packs: (packs.data ?? []).map((p) => ({ id: p.id, sid: p.sid, createdAt: iso(p.created_at)!, expiresAt: iso(p.expires_at)!, revokedAt: iso(p.revoked_at), createdBy: p.created_by })),
-    school: { name: s.name, city: s.city, slug: s.slug, noticeVersion: s.notice_version, breachPlan: s.breach_plan, dpo: s.dpo },
+    school: { name: s.name, city: s.city, slug: s.slug, noticeVersion: s.notice_version, breachPlan: s.breach_plan, dpo: s.dpo, languages: (s.languages ?? ["en", "hi"]) as Lang[], groupId: s.group_id, isDemo: s.is_demo, digestEmail: s.digest_email, digestEmailTo: s.digest_email_to },
+    notice: (notice?.content as NoticeContent | undefined) ?? null,
     students: Object.fromEntries(students.map((r) => [r.id, toStudent(r)])),
     requests: Object.fromEntries(requests.map((r) => [r.id, { id: r.id, sid: r.sid, type: r.type as RequestType, note: r.note, createdAt: iso(r.created_at)!, status: r.status as ParentRequest["status"], ...(r.done_at ? { doneAt: iso(r.done_at)! } : {}) }])),
     events: events.map(toEvent),
@@ -217,7 +236,7 @@ async function loadSchool(id: string): Promise<DB> {
   };
 }
 
-type ParentView = { school: { name: string; city: string; slug: string; noticeVersion: string }; student: StudentRow & { consentAt: string | null }; event: Parameters<typeof toEvent>[0] | null } | null;
+type ParentView = { school: { name: string; city: string; slug: string; noticeVersion: string; languages: Lang[]; dpo: string }; notice: NoticeContent | null; student: StudentRow & { consentAt: string | null }; event: Parameters<typeof toEvent>[0] | null } | null;
 
 async function loadParent(sid: string): Promise<DB> {
   const { data, error } = await supabase.rpc("parent_view", { _sid: sid });
@@ -229,6 +248,7 @@ async function loadParent(sid: string): Promise<DB> {
   return {
     ...base,
     school: { ...base.school, ...v.school },
+    notice: v.notice,
     students: { [st.id]: toStudent({ ...st, sent_at: null, consent_at: st.consentAt }) },
     events: v.event ? [toEvent(v.event)] : [],
   };
@@ -366,6 +386,28 @@ export const actions = {
     if (!schoolId || state.mode === "parent") return;
     void supabase.rpc("log_access", { _school: schoolId, _action: action, _sid: sid, _detail: detail }).then(({ error }) => { if (error) console.error(error); });
   },
+  publishNoticeContent: (content: NoticeContent) => write(async () => ok(await supabase.rpc("publish_notice", { _school: schoolId!, _content: content as never })) as string),
+  setLanguages: (langs: Lang[]) => write(async () => { ok(await supabase.rpc("set_languages", { _school: schoolId!, _langs: langs })); }),
+  setDigest: (on: boolean, to: string) => write(async () => { ok(await supabase.rpc("set_digest", { _school: schoolId!, _on: on, _to: to })); }),
+  /** Uploads the signed form to the private bucket, then records consent with the file's SHA-256 in the ledger. */
+  recordPaper: (f: { sid: string; file: File; web: boolean; newsletter: boolean; witness: string; date: string }) => write(async () => {
+    const buf = await f.file.arrayBuffer();
+    const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", buf))).map((b) => b.toString(16).padStart(2, "0")).join("");
+    const ext = (f.file.name.split(".").pop() || "pdf").toLowerCase();
+    const path = `${schoolId}/${f.sid}-${Date.now()}.${ext}`;
+    const up = await supabase.storage.from("paper-consents").upload(path, f.file, { contentType: f.file.type, upsert: false });
+    if (up.error) fail(up.error);
+    ok(await supabase.rpc("record_paper_consent", { _school: schoolId!, _sid: f.sid, _web: f.web, _newsletter: f.newsletter, _witness: f.witness, _date: f.date, _file: path, _hash: hash }));
+    return hash;
+  }),
+  paperUrl: async (path: string) => {
+    const r = await supabase.storage.from("paper-consents").createSignedUrl(path, 300);
+    if (r.error) fail(r.error);
+    actions.logAccess("view", path.split("/")[1]?.split("-")[0] ?? "-", "Viewed paper consent scan");
+    return r.data!.signedUrl;
+  },
+  createGroup: (name: string) => write(async () => { ok(await supabase.rpc("create_group", { _school: schoolId!, _name: name })); }),
+  joinGroup: (code: string) => write(async () => { ok(await supabase.rpc("join_group", { _school: schoolId!, _code: code })); }),
   reset: () => write(async () => {
     if (state.mode !== "demo") return;
     ok(await supabase.rpc("reset_demo"));
@@ -431,4 +473,11 @@ export async function loadPublicSchool(slug: string): Promise<PublicSchool | nul
   const { data, error } = await supabase.rpc("public_school", { _slug: slug });
   if (error) throw error;
   return (data as unknown as PublicSchool) ?? null;
+}
+
+export type GroupRow = { id: string; name: string; slug: string; city: string; students: number; recorded: number; pending: number; openRequests: number; overdue: number; openBreaches: number; met: number; steps: number; lastActivity: string | null };
+export async function loadGroup(groupId: string): Promise<{ name: string; joinCode: string | null; schools: GroupRow[] }> {
+  const { data, error } = await supabase.rpc("group_overview", { _group: groupId });
+  if (error) throw error;
+  return data as unknown as { name: string; joinCode: string | null; schools: GroupRow[] };
 }

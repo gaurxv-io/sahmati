@@ -1,3 +1,4 @@
+import { MSG, fill } from "./i18n";
 import type { Breach, DB, ParentRequest, Role, Student } from "./types";
 
 export const ROLES: Record<Role, { label: string; desc: string }> = {
@@ -53,9 +54,8 @@ export const sortedRequests = (db: DB) => Object.values(db.requests).sort((a, b)
 
 export function consentLink(sid: string) { return `${window.location.origin}/c/${sid}`; }
 export function waMessage(db: DB, s: Student, reminder = false) {
-  const link = consentLink(s.id);
-  if (s.lang === "hi") return `${reminder ? "याद दिलाना: " : ""}नमस्ते ${s.parent} जी, ${db.school.name} डेटा सुरक्षा कानून (DPDP) के तहत ${s.name} के डेटा के लिए आपकी सहमति ले रहा है। इसमें 1 मिनट लगता है और यह मुफ़्त है: ${link}`;
-  return `${reminder ? "Reminder: " : ""}Namaste ${s.parent}, ${db.school.name} is collecting your consent for ${s.name}'s data under India's DPDP Act. It takes one minute and is free: ${link}`;
+  const m = MSG[s.lang] ?? MSG.en;
+  return (reminder ? m.waRemind : "") + fill(m.wa, { parent: s.parent, school: db.school.name, student: s.name, link: consentLink(s.id) });
 }
 export const waHref = (db: DB, s: Student, reminder = false) => `https://wa.me/91${s.phone}?text=${encodeURIComponent(waMessage(db, s, reminder))}`;
 
@@ -103,3 +103,27 @@ function staffDetail(db: DB) {
 export const olderNotice = (db: DB) => Object.values(db.students).filter((s) => (s.status === "given" || s.status === "withdrawn") && (s.noticeAt ?? "") !== db.school.noticeVersion);
 export const packLink = (token: string) => `${window.location.origin}/p/${token}`;
 export const publicLink = (slug: string) => `${window.location.origin}/s/${slug}`;
+
+/** Weekly principal summary, shared by the Overview card, WhatsApp share and the Monday email. */
+export function digest(db: DB, now = Date.now()) {
+  const st = stats(db);
+  const week = now - 7 * 86400000;
+  const newConsents = db.events.filter((e) => e.type === "consent" && Date.parse(e.ts) >= week).length;
+  const open = sortedRequests(db).filter((r) => r.status === "open");
+  const dueSoon = open.filter((r) => !isLate(r) && Date.parse(dueDate(r)) - now < 3 * 86400000).length;
+  const next = st.overdueBreaches ? "File the detailed breach report with the Board today."
+    : st.openBreaches ? "Finish the open breach response steps."
+    : st.late ? `Answer the ${st.late} overdue parent request${st.late > 1 ? "s" : ""}.`
+    : st.pending + st.renewal > 0 ? `Send WhatsApp reminders to the ${st.pending + st.renewal} parents still pending.`
+    : st.checks.find((c) => !c.ok)?.title.replace(/^/, "Complete: ") ?? "Keep going. Every step is met.";
+  const lines = [
+    { k: "New consents this week", v: String(newConsents) },
+    { k: "Still pending", v: String(st.pending + st.renewal) },
+    { k: "Requests due or overdue", v: `${dueSoon} due · ${st.late} overdue` },
+    { k: "Open breaches", v: String(st.openBreaches) },
+    { k: "Readiness", v: `${st.ready} of ${st.checks.length} steps` },
+    { k: "Days to the deadline", v: String(daysLeft()) },
+  ];
+  const text = `${db.school.name} · Sahmati weekly summary\n\n` + lines.map((l) => `${l.k}: ${l.v}`).join("\n") + `\n\nNext: ${next}`;
+  return { lines, next, text };
+}

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { LANGS, MSG, PARENT_T_EXTRA, fontStyle, loadFont, type LangCode } from "@/lib/i18n";
+import { NOTICE_SECTIONS } from "@/lib/types";
 import { Link, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Check } from "lucide-react";
 import { Crest } from "@/components/brand";
@@ -10,6 +12,8 @@ const T = {
   en: { step: "01 · Parent consent", title: "Consent for your child's data", keeps: "What the school keeps", keepsV: "Name, class, photo, address, parent contact, marks, attendance and medical notes.", why: "Why", whyV: "Teaching, report cards, school transport, and contacting you in an emergency.", notice: "Read the full privacy notice", choices: "Your choices", rec: "Education and school records", web: "Photos on school website and social media", news: "Event photos in the school newsletter", required: "REQUIRED", optional: "OPTIONAL", verify: "Verify it's you", sentTo: "6-digit code sent to", sendCode: "Send code to", demo: "Prototype: no SMS is sent. Your code is", give: "Give consent · free", update: "Save changes", bad: "That code doesn't match. Check the code and try again.", locked: "Too many wrong tries. This code no longer works. Request a new code.", expired: "This code has expired. Request a new code.", rate: "Too many codes requested. Try again in an hour.", sms: "We couldn't send the SMS. Try again in a minute.", newCode: "Request a new code", recorded: "Consent recorded", copy: "A copy has been sent to your WhatsApp.", receipt: "Receipt", student: "Student", by: "Given by", time: "Time", verified: "Verified", noticeV: "Notice", yes: "YES", no: "NO", change: "Change or withdraw", ask: "Ask about my child's data", reqType: "What do you need?", access: "See my child's data", correct: "Correct something", del: "Delete something", note: "Details (optional)", sendReq: "Send request", sentReq: "Request sent. The school will reply within 7 days.", proof: "Proof", check: "Check this receipt", free: "Consent is always free. Change or withdraw it anytime from this same link.", invalid: "This consent link isn't valid. Ask the school office to send a fresh link." },
   hi: { step: "01 · अभिभावक सहमति", title: "आपके बच्चे के डेटा के लिए सहमति", keeps: "स्कूल क्या रखता है", keepsV: "नाम, कक्षा, फ़ोटो, पता, अभिभावक संपर्क, अंक, उपस्थिति और स्वास्थ्य संबंधी जानकारी।", why: "क्यों", whyV: "पढ़ाई, रिपोर्ट कार्ड, स्कूल बस, और आपात स्थिति में आपसे संपर्क के लिए।", notice: "पूरी गोपनीयता सूचना पढ़ें", choices: "आपकी पसंद", rec: "शिक्षा और स्कूल रिकॉर्ड", web: "स्कूल वेबसाइट और सोशल मीडिया पर फ़ोटो", news: "स्कूल न्यूज़लेटर में कार्यक्रम की फ़ोटो", required: "ज़रूरी", optional: "वैकल्पिक", verify: "पुष्टि करें कि यह आप हैं", sentTo: "6 अंकों का कोड भेजा गया", sendCode: "कोड भेजें", demo: "प्रोटोटाइप: कोई SMS नहीं भेजा जाता। आपका कोड है", give: "सहमति दें · मुफ़्त", update: "बदलाव सहेजें", bad: "कोड मेल नहीं खाता। फिर से देखें।", locked: "बहुत बार गलत कोड डाला गया। यह कोड अब काम नहीं करेगा। नया कोड मँगाएँ।", expired: "इस कोड की समय-सीमा खत्म हो गई है। नया कोड मँगाएँ।", rate: "बहुत ज़्यादा कोड मँगाए गए। एक घंटे बाद फिर कोशिश करें।", sms: "SMS नहीं भेजा जा सका। एक मिनट बाद फिर कोशिश करें।", newCode: "नया कोड मँगाएँ", recorded: "सहमति दर्ज हो गई", copy: "इसकी कॉपी आपके WhatsApp पर भेज दी गई है।", receipt: "रसीद", student: "छात्र", by: "सहमति दी", time: "समय", verified: "पुष्टि", noticeV: "सूचना", yes: "हाँ", no: "नहीं", change: "बदलें या वापस लें", ask: "बच्चे के डेटा के बारे में पूछें", reqType: "आपको क्या चाहिए?", access: "बच्चे का डेटा देखना", correct: "कुछ सुधारना", del: "कुछ हटाना", note: "विवरण (वैकल्पिक)", sendReq: "अनुरोध भेजें", sentReq: "अनुरोध भेज दिया गया। स्कूल 7 दिनों में जवाब देगा।", proof: "प्रमाण", check: "रसीद जाँचें", free: "सहमति हमेशा मुफ़्त है। इसी लिंक से कभी भी बदलें या वापस लें।", invalid: "यह लिंक मान्य नहीं है। स्कूल से नया लिंक माँगें।" },
 };
+
+const TT = { ...T, ...PARENT_T_EXTRA } as unknown as Record<LangCode, (typeof T)["en"]>;
 
 export default function Parent() {
   const { sid = "" } = useParams({ strict: false }) as { sid?: string };
@@ -34,7 +38,11 @@ export default function Parent() {
   const [reqType, setReqType] = useState<RequestType>("access");
   const [reqNote, setReqNote] = useState("");
   const [reqSent, setReqSent] = useState(false);
-  const t = T[lang];
+  const t = TT[lang] ?? T.en;
+  const offered = Array.from(new Set<LangCode>([...((db.school.languages ?? ["en", "hi"]) as LangCode[]), ...(s ? [s.lang] : [])]));
+  const [showNotice, setShowNotice] = useState(false);
+  useEffect(() => { loadFont(lang); }, [lang]);
+  const notice = db.notice?.[lang] ?? db.notice?.en ?? null;
 
   const header = (
     <>
@@ -71,12 +79,20 @@ export default function Parent() {
   return (
     <div className="min-h-screen pb-10">
       {header}
-      <div className="mx-auto flex max-w-[460px] flex-col gap-4 px-4 pt-[18px]" lang={lang}>
+      <div className="mx-auto flex max-w-[460px] flex-col gap-4 px-4 pt-[18px]" lang={lang} style={fontStyle(lang)}>
+        {offered.length > 2 ? (
+          <label className="flex items-center justify-between gap-3 rounded-lg border border-line bg-white px-3 py-2 text-sm"><span className="eyebrow">{MSG[lang].language}</span>
+            <select aria-label="Language" className="field min-h-9 text-sm" value={lang} onChange={(e) => setLang(e.target.value as LangCode)}>
+              {offered.map((l) => <option key={l} value={l}>{LANGS[l].native}{l !== "en" ? ` · ${LANGS[l].name}` : ""}</option>)}
+            </select>
+          </label>
+        ) : (
         <div role="group" aria-label="Language" className="flex gap-[3px] rounded-lg border border-line bg-canvas p-[3px]">
-          {(["en", "hi"] as const).map((l) => (
-            <button key={l} lang={l} aria-pressed={lang === l} onClick={() => setLang(l)} className={`min-h-10 flex-1 rounded-md text-sm ${lang === l ? "bg-white font-semibold text-ink shadow-[0_1px_2px_rgba(15,20,18,0.08)]" : "text-muted"} ${l === "hi" ? "font-hi" : ""}`}>{l === "en" ? "English" : "हिंदी"}</button>
+          {offered.map((l) => (
+            <button key={l} lang={l} aria-pressed={lang === l} onClick={() => setLang(l)} className={`min-h-10 flex-1 rounded-md text-sm ${lang === l ? "bg-white font-semibold text-ink shadow-[0_1px_2px_rgba(15,20,18,0.08)]" : "text-muted"} ${l === "hi" ? "font-hi" : ""}`}>{LANGS[l].native}</button>
           ))}
         </div>
+        )}
 
         {done ? (
           <div className="overflow-hidden rounded-xl border border-line bg-white">
@@ -116,8 +132,16 @@ export default function Parent() {
             <div className="grid gap-2 rounded-[10px] border border-line bg-white p-4">
               <span className="eyebrow">{t.keeps}</span><span className="text-sm text-ink-2">{t.keepsV}</span>
               <span className="eyebrow mt-1">{t.why}</span><span className="text-sm text-ink-2">{t.whyV}</span>
-              <a href="#notice" className="text-sm font-semibold">{t.notice}</a>
+              <button type="button" className="w-fit text-left text-sm font-semibold text-green" onClick={() => setShowNotice(!showNotice)}>{t.notice}</button>
             </div>
+            {showNotice && (
+              <div id="notice" className="grid gap-2.5 rounded-[10px] border border-line bg-white p-4 text-sm">
+                <div className="flex items-center justify-between"><b className="font-semibold">{MSG[lang].noticeTitle}</b><span className="font-mono text-[11px] text-muted-2">{db.school.noticeVersion.toUpperCase()}</span></div>
+                {notice ? NOTICE_SECTIONS.map(([k, label]) => notice[k] ? <div key={k}><span className="eyebrow">{(db.notice?.[lang] ? (TT[lang] as Record<string, string>)[`n_${k}`] : undefined) ?? label}</span><p className="mt-0.5 whitespace-pre-line text-ink-2">{notice[k]}</p></div> : null)
+                  : <><p className="text-ink-2">{t.keepsV}</p><p className="text-ink-2">{t.whyV}</p><p className="text-ink-2">{t.free}</p></>}
+                <button type="button" className="btn btn-sm w-fit" onClick={() => setShowNotice(false)}>{MSG[lang].close}</button>
+              </div>
+            )}
             <div className="grid gap-2">
               <div className="flex items-center justify-between text-[15px] font-semibold">{t.choices}<span className="font-mono text-[11px] font-normal text-muted-2">02</span></div>
               {([[t.rec, true, true, () => {}], [t.web, web, false, () => setWeb(!web)], [t.news, news, false, () => setNews(!news)]] as const).map(([label, val, req, toggle], i) => (

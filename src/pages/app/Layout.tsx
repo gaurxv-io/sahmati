@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { AlertTriangle, Building2, Eye, FileText, Inbox, LayoutGrid, Link2, Settings, ShieldAlert, UserCog, Users } from "lucide-react";
+import { Network, AlertTriangle, Building2, Eye, FileText, Inbox, LayoutGrid, Link2, Settings, ShieldAlert, UserCog, Users } from "lucide-react";
 import { Crest, Logo } from "@/components/brand";
 import { actions, signOut, useDB, useStore } from "@/lib/store";
 import { can, daysLeft, elapsed, roleLabel, stats } from "@/lib/derive";
@@ -50,6 +50,7 @@ export default function AppLayout() {
               </Link>
             );
           })}
+          {db.school.groupId && <Link to="/group" className="flex items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 py-2 text-[13.5px] font-medium text-muted hover:bg-subtle hover:text-ink"><Network className="h-4 w-4 shrink-0" strokeWidth={1.8} />Group view</Link>}
         </nav>
         <div className="mt-auto hidden flex-col gap-2.5 md:flex">
           <div className="flex flex-col gap-1.5 rounded-xl border border-line p-3">
