@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, Building2, FileText, Inbox, LayoutGrid, Link2, Settings, ShieldAlert, Users } from "lucide-react";
 import { Crest, Logo } from "@/components/brand";
-import { actions, useDB } from "@/lib/store";
+import { actions, signOut, useDB, useStore } from "@/lib/store";
 import { daysLeft, elapsed, stats } from "@/lib/derive";
 import { toast } from "@/components/toast";
 
@@ -18,6 +18,8 @@ const NAV = [
 
 export default function AppLayout() {
   const db = useDB()!;
+  const { mode, user } = useStore();
+  const live = mode === "live";
   const st = stats(db);
   const loc = useLocation();
   const nav = useNavigate();
@@ -53,8 +55,12 @@ export default function AppLayout() {
             <span className="font-mono text-[11px] text-muted-2">13 MAY 2027</span>
           </div>
           <div className="flex items-center gap-2.5 px-1.5 text-[13px]">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-green-soft text-[11px] font-bold text-green">PR</span>
-            <div><div className="font-semibold">Principal's office</div><div className="font-mono text-[11px] text-muted-2">Admin</div></div>
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-green-soft text-[11px] font-bold text-green">{live ? (user?.email ?? "S").slice(0, 2).toUpperCase() : "PR"}</span>
+            {live ? (
+              <div className="min-w-0"><div className="truncate font-semibold">{user?.email}</div><button className="font-mono text-[11px] text-muted-2 hover:text-ink" onClick={() => signOut()}>Sign out</button></div>
+            ) : (
+              <div><div className="font-semibold">Principal's office</div><div className="font-mono text-[11px] text-muted-2">Admin</div></div>
+            )}
           </div>
         </div>
       </aside>
@@ -63,9 +69,13 @@ export default function AppLayout() {
         <div className="sticky top-0 z-10 border-b border-line bg-canvas/90 backdrop-blur">
           <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-7">
             <div className="flex items-center gap-2 text-[13px] text-muted-2"><span className="hidden sm:inline">{db.school.name}</span><span className="hidden sm:inline">/</span><b className="font-semibold text-ink">{title}</b></div>
-            <span className="ml-auto hidden items-center gap-2 rounded-full sm:inline-flex border border-line bg-white px-2.5 py-1 font-mono text-[11px] text-muted-2"><span className="h-1.5 w-1.5 rounded-full bg-muted-3" />Sample school · demo data</span>
+            <span className="ml-auto hidden items-center gap-2 rounded-full sm:inline-flex border border-line bg-white px-2.5 py-1 font-mono text-[11px] text-muted-2">{live ? <><span className="h-1.5 w-1.5 rounded-full bg-brand" />Live · synced</> : <><span className="h-1.5 w-1.5 rounded-full bg-muted-3" />Sample school · demo data</>}</span>
             <button className="btn btn-danger btn-sm" onClick={() => nav({ to: "/app/breach", search: { new: 1 } })}><AlertTriangle className="h-3.5 w-3.5" />Report a data breach</button>
-            <button className="btn btn-ghost btn-sm" onClick={async () => { await actions.reset(); toast("Demo data reset"); }}>Reset demo</button>
+            {live ? (
+              <button className="btn btn-ghost btn-sm md:hidden" onClick={() => signOut()}>Sign out</button>
+            ) : (
+              <button className="btn btn-ghost btn-sm" onClick={async () => { await actions.reset(); toast("Demo data reset"); }}>Reset demo</button>
+            )}
           </div>
         </div>
         <main className="flex w-full max-w-[1180px] flex-col gap-5 px-4 pb-20 pt-7 sm:px-7">

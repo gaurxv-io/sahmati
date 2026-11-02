@@ -28,7 +28,7 @@ export const maskPhone = (p: string) => `+91 ${p.slice(0, 2)}XXX X${p.slice(-4)}
 export const daysLeft = () => Math.max(0, Math.ceil((DEADLINE - Date.now()) / 86400000));
 export const elapsed = () => Math.min(1, Math.max(0, (Date.now() - RULES_NOTIFIED) / (DEADLINE - RULES_NOTIFIED)));
 export const band = (cls: string) => (["Nursery", "LKG", "UKG"].includes(cls) ? BANDS[0] : +cls <= 5 ? BANDS[1] : +cls <= 8 ? BANDS[2] : BANDS[3]);
-export const clsLabel = (s: Student) => `${/^\d+$/.test(s.cls) ? "Class " + s.cls : s.cls}-${s.sec}`;
+export const clsLabel = (s: Pick<Student, "cls" | "sec">) => `${/^\d+$/.test(s.cls) ? "Class " + s.cls : s.cls}-${s.sec}`;
 export const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 export const isLate = (r: ParentRequest) => r.status === "open" && Date.now() - Date.parse(r.createdAt) > SLA_DAYS * 86400000;
 export const dueDate = (r: ParentRequest) => new Date(Date.parse(r.createdAt) + SLA_DAYS * 86400000).toISOString();
