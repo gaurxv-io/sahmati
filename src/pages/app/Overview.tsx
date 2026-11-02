@@ -5,6 +5,7 @@ import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
 import { shortDate, stats } from "@/lib/derive";
 import { PageHead } from "./Layout";
+import { ThisWeek } from "./SettingsExtra";
 
 export default function Overview() {
   const db = useDB()!;
@@ -21,6 +22,8 @@ export default function Overview() {
         <Link to="/app/report" className="btn"><FileText className="h-4 w-4" />Compliance report</Link>
         <Link to="/app/students" search={{ status: "pending", remind: "1" }} className="btn btn-primary"><MessageCircle className="h-4 w-4" />Remind {st.pending} parents</Link>
       </PageHead>
+
+      <ThisWeek />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {tiles.map((t) => (
