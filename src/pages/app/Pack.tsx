@@ -54,7 +54,7 @@ export default function Pack() {
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-green-line bg-green-soft px-3.5 py-3 text-[13px] text-green print:hidden">
           <span className="min-w-0 flex-1 break-all font-mono text-[11.5px]">{link}</span>
           <a className="btn btn-sm" target="_blank" rel="noopener" href={wa(link)}><MessageCircle className="h-3.5 w-3.5" />Open WhatsApp</a>
-          <button className="btn btn-sm" onClick={async () => { await copyText(link); toast("Link copied"); }}><Copy className="h-3.5 w-3.5" />Copy</button>
+          <button className="btn btn-sm" onClick={() => copyText(link, "Link copied")}><Copy className="h-3.5 w-3.5" />Copy</button>
         </div>
       )}
 
