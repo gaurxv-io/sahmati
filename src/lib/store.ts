@@ -97,7 +97,6 @@ async function resolve() {
     if (key.startsWith("user:")) {
       const { data, error } = await supabase.from("school_staff").select("school_id").eq("user_id", state.user!.id).maybeSingle();
       if (error) throw error;
-      if (my !== token) return;
       let mine = data?.school_id ?? null;
       if (!mine) {
         // Invited staff join their school on first sign-in.
