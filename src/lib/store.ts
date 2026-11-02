@@ -21,7 +21,7 @@ export type StoreState = {
   mode: Mode;
   db: DB | null;
   user: User | null;
-  error?: string;
+  error?: string | undefined;
 };
 
 let state: StoreState = { status: "loading", mode: "demo", db: null, user: null };
@@ -249,7 +249,7 @@ export const actions = {
   /** Parent consent: validated and written by the server in one step. */
   giveConsent: (sid: string, choices: Student["choices"]) => write(async () => {
     const r = ok(await supabase.rpc("give_consent", { _sid: sid, _web: choices.web, _newsletter: choices.newsletter }));
-    return toEvent(r);
+    return toEvent(r!);
   }),
   addRequest: (sid: string, type: RequestType, note: string) => write(async () => {
     ok(await supabase.rpc("parent_request", { _sid: sid, _type: type, _note: note }));
