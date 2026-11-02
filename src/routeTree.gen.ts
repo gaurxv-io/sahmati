@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AuditRouteImport } from './routes/audit'
+import { Route as GroupRouteImport } from './routes/group'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAccessLogRouteImport } from './routes/app.access-log'
@@ -43,6 +44,11 @@ const AppRoute = AppRouteImport.update({
 const AuditRoute = AuditRouteImport.update({
   id: '/audit',
   path: '/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupRoute = GroupRouteImport.update({
+  id: '/group',
+  path: '/group',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/audit': typeof AuditRoute
+  '/group': typeof GroupRoute
   '/login': typeof LoginRoute
   '/app/access-log': typeof AppAccessLogRoute
   '/app/breach': typeof AppBreachRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/group': typeof GroupRoute
   '/login': typeof LoginRoute
   '/app/access-log': typeof AppAccessLogRoute
   '/app/breach': typeof AppBreachRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/audit': typeof AuditRoute
+  '/group': typeof GroupRoute
   '/login': typeof LoginRoute
   '/app/access-log': typeof AppAccessLogRoute
   '/app/breach': typeof AppBreachRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/audit'
+    | '/group'
     | '/login'
     | '/app/access-log'
     | '/app/breach'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/audit'
+    | '/group'
     | '/login'
     | '/app/access-log'
     | '/app/breach'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/audit'
+    | '/group'
     | '/login'
     | '/app/access-log'
     | '/app/breach'
@@ -269,6 +281,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   AuditRoute: typeof AuditRoute
+  GroupRoute: typeof GroupRoute
   LoginRoute: typeof LoginRoute
   CSidRoute: typeof CSidRoute
   PTokenRoute: typeof PTokenRoute
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/audit'
       fullPath: '/audit'
       preLoaderRoute: typeof AuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group': {
+      id: '/group'
+      path: '/group'
+      fullPath: '/group'
+      preLoaderRoute: typeof GroupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -456,6 +476,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuditRoute: AuditRoute,
+  GroupRoute: GroupRoute,
   LoginRoute: LoginRoute,
   CSidRoute: CSidRoute,
   PTokenRoute: PTokenRoute,
