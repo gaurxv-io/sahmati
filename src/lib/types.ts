@@ -48,7 +48,7 @@ export type School = {
   dpo: string;
 };
 
-export type Lead = { name: string; role: string; school: string; city: string; phone: string; size: string; at: string };
+export type Lead = { name: string; role: string; school: string; city: string; phone: string; size: string; at: string; score?: number; gaps?: string[] };
 
 export type DB = {
   school: School;

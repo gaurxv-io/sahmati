@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "@/components/toast";
+import { Pill } from "@/components/brand";
 import { actions, useDB } from "@/lib/store";
 import { PageHead } from "./Layout";
 
@@ -37,7 +38,7 @@ export default function Settings() {
           <div className="panel flex flex-col gap-2 p-[18px]">
             <h2 className="text-base font-semibold">Audit requests from the website</h2>
             {db.leads.length ? db.leads.slice().reverse().map((l) => (
-              <div key={l.at} className="border-t border-line py-2 text-[13px] first:border-t-0"><b className="font-semibold">{l.school}</b> <span className="text-muted-2">· {l.city} · {l.size}</span><div className="font-mono text-[11.5px] text-muted-2">{l.name.toUpperCase()} · {l.role.toUpperCase()} · {l.phone}</div></div>
+              <div key={l.at} className="border-t border-line py-2 text-[13px] first:border-t-0"><b className="font-semibold">{l.school}</b> <span className="text-muted-2">· {l.city} · {l.size}</span>{l.score != null && <> <Pill kind={l.score >= 80 ? "met" : l.score >= 50 ? "open" : "late"} label={`Self-audit ${l.score}%`} /></>}<div className="font-mono text-[11.5px] text-muted-2">{l.name.toUpperCase()} · {l.role.toUpperCase()} · {l.phone}</div></div>
             )) : <p className="text-[13px] text-muted-2">Requests from the "Book free audit" form on the home page show up here.</p>}
           </div>
         </div>

@@ -45,6 +45,7 @@ export default function Landing() {
             {[["#why", "Why DPDP"], ["#how", "How it works"], ["#product", "Product"], ["#pricing", "Pricing"], ["#faq", "FAQ"]].map(([h, l]) => (
               <a key={h} href={h} className="text-muted hover:text-ink">{l}</a>
             ))}
+            <Link to="/audit" className="text-muted hover:text-ink">Self-audit</Link>
             <Link to="/login" className="text-muted hover:text-ink">Sign in</Link>
           </nav>
           <a href="#audit" className="btn btn-primary ml-auto md:ml-0">Book free audit</a>
@@ -63,6 +64,7 @@ export default function Landing() {
           <div className="flex flex-wrap gap-3">
             <a href="#audit" className="btn btn-primary btn-lg">Book a free DPDP audit</a>
             <Link to="/app" className="btn btn-lg">Try the live demo <ArrowRight className="h-4 w-4" /></Link>
+            <Link to="/audit" className="btn btn-ghost btn-lg">Take the 5-minute self-audit</Link>
           </div>
           <p className="font-mono text-[11px] text-muted-2">Free for schools in year 1 · Consent always free for parents · Data stored in India</p>
           <a href={GAZETTE} target="_blank" rel="noopener" className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold underline underline-offset-2">Official DPDP Rules 2025 (Gazette, MeitY) <ExternalLink className="h-3.5 w-3.5" /></a>
@@ -219,6 +221,7 @@ export default function Landing() {
           <span className="font-mono text-xs tracking-[0.08em] text-muted-2">07 · FREE DPDP AUDIT</span>
           <h2 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] sm:text-[42px]">Find out where your school stands. 45 minutes, no cost.</h2>
           <p className="max-w-[520px] text-base text-muted">We visit your school, review how student data is collected and stored, and send a written report of what to fix before the deadline.</p>
+          <p className="text-sm text-muted">Not sure yet? <Link to="/audit" className="font-semibold underline underline-offset-2">Take the 5-minute self-audit first.</Link></p>
         </div>
         {sent ? (
           <div className="flex flex-col items-start justify-center gap-3 rounded-xl border border-green-line bg-green-soft p-8">
