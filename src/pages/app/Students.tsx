@@ -125,7 +125,7 @@ export default function Students() {
 
       <div className="panel">
         <div className="flex flex-wrap items-center gap-2 border-b border-line px-3.5 py-3">
-          <div role="group" aria-label="Status" className="inline-flex gap-[3px] rounded-lg border border-line bg-canvas p-[3px]">
+          <div role="group" aria-label="Status" className="inline-flex max-w-full overflow-x-auto gap-[3px] rounded-lg border border-line bg-canvas p-[3px]">
             {seg("all", "All", st.total)}{seg("given", "Given", st.given)}{seg("pending", "Pending", st.pending)}{seg("withdrawn", "Withdrawn", st.withdrawn)}{st.renewal > 0 && seg("renewal", "Renewal", st.renewal)}
           </div>
           <select id="band" aria-label="Class group" className="field" value={bandSel} onChange={(e) => setBand(e.target.value)}>
