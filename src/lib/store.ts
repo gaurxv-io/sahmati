@@ -189,7 +189,7 @@ async function loadSchool(id: string): Promise<DB> {
     all((a, b) => supabase.from("requests").select("*").eq("school_id", id).order("created_at").range(a, b)),
     supabase.from("breaches").select("*").eq("school_id", id).order("created_at"),
     supabase.from("vendors").select("*").eq("school_id", id).order("id"),
-    supabase.from("leads").select("*").order("at"),
+    uid ? supabase.from("leads").select("*").order("at") : Promise.resolve({ data: [] as never[] }),
     supabase.from("school_staff").select("*").eq("school_id", id).order("created_at"),
     supabase.from("staff_invites").select("*").eq("school_id", id).order("created_at"),
     supabase.from("access_log").select("*").eq("school_id", id).order("at", { ascending: false }).limit(1000),
