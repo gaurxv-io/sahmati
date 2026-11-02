@@ -11,7 +11,7 @@ export default function Overview() {
   const st = stats(db);
   const tiles = [
     { l: "Consent", v: `${Math.round(st.cov * 100)}%`, c: "text-green", s: <>{st.given + st.withdrawn} of {st.total} students recorded</> },
-    { l: "Pending", v: String(st.pending), c: "text-amber-ink", s: <Link to="/app/students" search={{ status: "pending", remind: "1" }} className="font-semibold">Send reminders</Link> },
+    { l: "Pending", v: String(st.pending), c: "text-amber-ink", s: <><Link to="/app/students" search={{ status: "pending", remind: "1" }} className="font-semibold">Send reminders</Link>{st.renewal > 0 && <><br /><Link to="/app/students" search={{ status: "renewal" }} className="font-mono text-[11.5px] text-amber-ink">Renewals · {st.renewal} awaiting</Link></>}</> },
     { l: "Parent requests", v: String(st.open), c: "", s: st.late ? <Pill kind="late" label={`${st.late} overdue`} /> : <>Open · none overdue</> },
     { l: "Readiness", v: `${Math.round((st.ready / st.checks.length) * 100)}%`, c: st.ready === st.checks.length ? "text-green" : "", s: <>{st.ready} of {st.checks.length} steps complete</> },
   ];
