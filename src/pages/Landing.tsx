@@ -160,7 +160,7 @@ export default function Landing() {
             ["/c/$sid", "Parent consent page", "What a parent opens from WhatsApp. English and Hindi, OTP verified, no app to install."],
             ["/app/ledger", "Tamper-evident ledger", "Every consent is hash-chained. Try editing a record and watch verification catch it."],
           ] as const).map(([to, t, p]) => (
-            <Link key={to} to={to} className="group flex flex-col gap-3 rounded-xl border border-line bg-white p-6 text-ink hover:text-ink hover:shadow-card">
+            <Link key={to} to={to} params={to === "/c/$sid" ? { sid: "s003" } : undefined} className="group flex flex-col gap-3 rounded-xl border border-line bg-white p-6 text-ink hover:text-ink hover:shadow-card">
               <b className="text-lg font-semibold">{t}</b>
               <p className="text-[15px] text-muted">{p}</p>
               <span className="mt-auto inline-flex items-center gap-1 pt-2 text-sm font-semibold text-green group-hover:text-green-hover">Open <ArrowRight className="h-3.5 w-3.5" /></span>
