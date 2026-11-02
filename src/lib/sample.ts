@@ -84,6 +84,11 @@ export async function buildSampleDB(): Promise<DB> {
     leads: [],
     breaches,
     vendors,
+    staff: [],
+    invites: [],
+    access: [],
+    packs: [],
+    me: { role: "principal", name: "Principal's office", classes: [] },
   };
 }
 
