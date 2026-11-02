@@ -1,0 +1,59 @@
+export type ConsentStatus = "pending" | "given" | "withdrawn";
+export type Lang = "en" | "hi";
+
+export type Choices = { records: true; web: boolean; newsletter: boolean };
+
+export type Student = {
+  id: string;
+  name: string;
+  cls: string;
+  sec: string;
+  parent: string;
+  phone: string;
+  lang: Lang;
+  status: ConsentStatus;
+  choices: Choices;
+  sentAt: string | null;
+  consentAt: string | null;
+  receipt: string | null;
+};
+
+export type LedgerEvent = {
+  seq: number;
+  ts: string;
+  type: "notice" | "drive" | "sent" | "remind" | "consent" | "update" | "withdraw" | "request" | "resolved" | "plan" | "import";
+  sid: string;
+  detail: string;
+  prev: string;
+  hash: string;
+};
+
+export type RequestType = "access" | "correct" | "delete";
+export type ParentRequest = {
+  id: string;
+  sid: string;
+  type: RequestType;
+  note: string;
+  createdAt: string;
+  status: "open" | "done";
+  doneAt?: string;
+};
+
+export type School = {
+  name: string;
+  city: string;
+  slug: string;
+  noticeVersion: string;
+  breachPlan: boolean;
+  dpo: string;
+};
+
+export type Lead = { name: string; role: string; school: string; city: string; phone: string; size: string; at: string };
+
+export type DB = {
+  school: School;
+  students: Record<string, Student>;
+  events: LedgerEvent[];
+  requests: Record<string, ParentRequest>;
+  leads: Lead[];
+};
