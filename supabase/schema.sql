@@ -1,0 +1,9 @@
+-- Sahmati production schema. The demo keeps the same shapes in localStorage (src/lib/store.ts).
+create table schools (id uuid primary key default gen_random_uuid(), name text not null, city text, slug text unique not null, notice_version text not null default 'v1', breach_plan boolean not null default false, dpo text, created_at timestamptz not null default now());
+create table students (id text not null, school_id uuid not null references schools(id) on delete cascade, name text not null, cls text not null, sec text not null default 'A', parent text not null, phone text not null, lang text not null default 'en' check (lang in ('en','hi')), status text not null default 'pending' check (status in ('pending','given','withdrawn')), choices jsonb not null default '{"records":true,"web":false,"newsletter":false}', sent_at timestamptz, consent_at timestamptz, receipt text unique, primary key (school_id, id));
+-- Append-only, hash-chained consent ledger: hash = sha256(prev|seq|ts|type|sid|detail)
+create table ledger (school_id uuid not null references schools(id) on delete cascade, seq bigint not null, ts timestamptz not null default now(), type text not null, sid text not null, detail text not null, prev text not null, hash text not null, primary key (school_id, seq));
+create rule ledger_no_update as on update to ledger do instead nothing;
+create rule ledger_no_delete as on delete to ledger do instead nothing;
+create table requests (id text primary key, school_id uuid not null references schools(id) on delete cascade, sid text not null, type text not null check (type in ('access','correct','delete')), note text, status text not null default 'open' check (status in ('open','done')), created_at timestamptz not null default now(), done_at timestamptz);
+create table leads (id uuid primary key default gen_random_uuid(), name text, role text, school text, city text, phone text, size text, created_at timestamptz not null default now());
