@@ -1,3 +1,4 @@
+import { appUrl } from "./base";
 import { MSG, fill } from "./i18n";
 import type { Breach, DB, ParentRequest, Role, Student } from "./types";
 
@@ -52,7 +53,7 @@ export function sortedStudents(db: DB) {
 }
 export const sortedRequests = (db: DB) => Object.values(db.requests).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
-export function consentLink(sid: string) { return `${window.location.origin}/c/${sid}`; }
+export function consentLink(sid: string) { return appUrl(`/c/${sid}`); }
 export function waMessage(db: DB, s: Student, reminder = false) {
   const m = MSG[s.lang] ?? MSG.en;
   return (reminder ? m.waRemind : "") + fill(m.wa, { parent: s.parent, school: db.school.name, student: s.name, link: consentLink(s.id) });
@@ -101,8 +102,8 @@ function staffDetail(db: DB) {
 }
 /** Students who consented to an older notice version than the current one. */
 export const olderNotice = (db: DB) => Object.values(db.students).filter((s) => (s.status === "given" || s.status === "withdrawn") && (s.noticeAt ?? "") !== db.school.noticeVersion);
-export const packLink = (token: string) => `${window.location.origin}/p/${token}`;
-export const publicLink = (slug: string) => `${window.location.origin}/s/${slug}`;
+export const packLink = (token: string) => appUrl(`/p/${token}`);
+export const publicLink = (slug: string) => appUrl(`/s/${slug}`);
 
 /** Weekly principal summary, shared by the Overview card, WhatsApp share and the Monday email. */
 export function digest(db: DB, now = Date.now()) {

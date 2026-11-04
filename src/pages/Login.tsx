@@ -1,3 +1,4 @@
+import { BASE, appUrl } from "@/lib/base";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Crest, Logo } from "@/components/brand";
@@ -15,7 +16,7 @@ export default function Login() {
   const send = async () => {
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) { setErr("Enter your school email address."); return; }
     setBusy(true); setErr("");
-    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: `${window.location.origin}/app` } });
+    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: appUrl("/app") } });
     setBusy(false);
     if (error) setErr(error.message); else setSent(true);
   };
@@ -56,7 +57,7 @@ export default function Login() {
             <span className="text-sm font-semibold text-green">Open</span>
           </button>
         </div>
-        <p className="text-center text-xs text-muted-2">New school? <a href="/#audit" className="font-semibold">Book a free DPDP audit</a></p>
+        <p className="text-center text-xs text-muted-2">New school? <a href={`${BASE}/#audit`} className="font-semibold">Book a free DPDP audit</a></p>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { appUrl } from "@/lib/base";
 import { useState, type FormEvent } from "react";
 import { Copy, UserPlus, X } from "lucide-react";
 import { Pill } from "@/components/brand";
@@ -28,7 +29,7 @@ export default function Team() {
       setForm({ email: "", name: "", role: "office", classes: "" });
     } catch { /* toast already shown */ } finally { setBusy(false); }
   };
-  const inviteMsg = (email: string, role: string) => `You've been added to ${db.school.name} on Sahmati as ${role}. Sign in with ${email} at ${window.location.origin}/login to open the school console.`;
+  const inviteMsg = (email: string, role: string) => `You've been added to ${db.school.name} on Sahmati as ${role}. Sign in with ${email} at ${appUrl("/login")} to open the school console.`;
 
   return (
     <>
