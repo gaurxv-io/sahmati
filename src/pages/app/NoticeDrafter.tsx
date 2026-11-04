@@ -1,21 +1,32 @@
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, X } from "lucide-react";
+import { FileText, X } from "lucide-react";
 import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
 import { LANGS, fontStyle, loadFont, type LangCode } from "@/lib/i18n";
 import { NOTICE_SECTIONS, type NoticeContent, type NoticeSection } from "@/lib/types";
-import { draftNotice } from "@/lib/notice.functions";
 
 const nextVersion = (v: string) => "v" + (parseInt(v.replace(/\D/g, "") || "0", 10) + 1);
 
-/** Settings → Privacy notice: AI draft, side-by-side review, then publish as the next version. */
+type Facts = { school: string; city: string; collect: string; purposes: string; vendors: string; retention: string; contact: string };
+
+/** Plain-language DPDP notice built from the school's own facts. Staff edit it, then publish. */
+function templateNotice(f: Facts): Record<NoticeSection, string> {
+  return {
+    collect: `${f.school}${f.city ? `, ${f.city},` : ""} keeps this information about your child: ${f.collect}`,
+    why: `We use it only for: ${f.purposes}`,
+    share: f.vendors ? `We share only what is needed with these service providers: ${f.vendors}.` : "We do not share your child's data with any outside company.",
+    keep: `How long we keep it: ${f.retention}`,
+    rights: "You can ask to see your child's data, correct it, or delete what is not needed. You can raise a complaint with us, and we reply within 7 days. You can also complain to the Data Protection Board of India.",
+    contact: `Contact our data protection officer: ${f.contact}`,
+    withdraw: "You can withdraw consent at any time, for free, from the same link. It is as easy as giving it. School records we need to run the school stay as required.",
+  };
+}
+
+/** Settings → Privacy notice: template draft, side-by-side review, then publish as the next version. */
 export default function NoticeDrafter({ onPublished }: { onPublished: () => void }) {
   const db = useDB()!;
-  const run = useServerFn(draftNotice);
   const offered = (db.school.languages ?? ["en", "hi"]) as LangCode[];
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
     collect: "Student name, class, photo, date of birth, address, parent names and mobile numbers, marks, attendance, and medical notes parents share.",
     purposes: "Teaching and assessment, report cards, school transport, fee records, and contacting parents in an emergency. Photos on the website and newsletter only with separate consent.",
@@ -27,15 +38,13 @@ export default function NoticeDrafter({ onPublished }: { onPublished: () => void
   const [right, setRight] = useState<LangCode>(offered.find((l) => l !== "en") ?? "en");
   const vendors = db.vendors.map((v) => `${v.name} (${v.role}): ${v.data.join(", ")}`).join("; ");
 
-  const generate = async () => {
-    setBusy(true);
-    try {
-      const r = await run({ data: { school: db.school.name, city: db.school.city, vendors, ...form } });
-      if (!r.ok) { toast(r.error); return; }
-      setDraft(r.content as NoticeContent);
-      const firstOther = (Object.keys(r.content) as LangCode[]).find((l) => l !== "en");
-      if (firstOther) { setRight(firstOther); loadFont(firstOther); }
-    } catch { toast("Couldn't draft the notice right now. Try again."); } finally { setBusy(false); }
+  // Other languages start from the English text so staff can translate it before publishing.
+  const generate = () => {
+    const en = templateNotice({ school: db.school.name, city: db.school.city, vendors, ...form });
+    const content: NoticeContent = Object.fromEntries(Array.from(new Set<LangCode>(["en", ...form.languages])).map((l) => [l, { ...en }]));
+    setDraft(content);
+    const firstOther = (Object.keys(content) as LangCode[]).find((l) => l !== "en");
+    if (firstOther) { setRight(firstOther); loadFont(firstOther); }
   };
   const edit = (l: LangCode, k: NoticeSection, v: string) => setDraft((d) => ({ ...d, [l]: { ...(d?.[l] as Record<NoticeSection, string>), [k]: v } }));
   const publish = async () => {
@@ -45,7 +54,7 @@ export default function NoticeDrafter({ onPublished }: { onPublished: () => void
     setDraft(null); setOpen(false); onPublished();
   };
 
-  if (!open) return <button className="btn btn-primary w-fit" onClick={() => setOpen(true)}><Sparkles className="h-4 w-4" />Draft notice with AI</button>;
+  if (!open) return <button className="btn btn-primary w-fit" onClick={() => setOpen(true)}><FileText className="h-4 w-4" />Draft privacy notice</button>;
 
   const langs = draft ? (Object.keys(draft) as LangCode[]) : [];
   const col = (l: LangCode) => (
@@ -61,7 +70,7 @@ export default function NoticeDrafter({ onPublished }: { onPublished: () => void
 
   return (
     <div className="flex flex-col gap-3 rounded-[10px] border border-line bg-canvas p-3.5">
-      <div className="flex items-center justify-between"><b className="text-sm font-semibold">Draft notice with AI</b><button className="btn btn-ghost btn-sm" onClick={() => { setOpen(false); setDraft(null); }}><X className="h-3.5 w-3.5" />Close</button></div>
+      <div className="flex items-center justify-between"><b className="text-sm font-semibold">Draft privacy notice</b><button className="btn btn-ghost btn-sm" onClick={() => { setOpen(false); setDraft(null); }}><X className="h-3.5 w-3.5" />Close</button></div>
       {!draft ? (
         <>
           {([["collect", "What data the school collects"], ["purposes", "Purposes"], ["retention", "Retention period"], ["contact", "Data protection contact"]] as const).map(([k, l]) => (
@@ -81,11 +90,11 @@ export default function NoticeDrafter({ onPublished }: { onPublished: () => void
               ))}
             </div>
           </div>
-          <button className="btn btn-primary w-fit" disabled={busy} onClick={generate}><Sparkles className="h-4 w-4" />{busy ? "Drafting… about 30 seconds" : "Draft notice"}</button>
+          <button className="btn btn-primary w-fit" onClick={generate}><FileText className="h-4 w-4" />Draft notice</button>
         </>
       ) : (
         <>
-          <p className="rounded-lg border border-amber/40 bg-amber-soft px-3 py-2 text-[12.5px] font-medium text-amber-ink">AI draft. Review before publishing; this is not legal advice.</p>
+          <p className="rounded-lg border border-amber/40 bg-amber-soft px-3 py-2 text-[12.5px] font-medium text-amber-ink">Draft from your answers. Translate the other languages and review before publishing; this is not legal advice.</p>
           {langs.length > 1 && (
             <label className="flex w-fit items-center gap-2 text-[13px] font-medium">Compare with
               <select className="field" value={right} onChange={(e) => { setRight(e.target.value as LangCode); loadFont(e.target.value as LangCode); }}>{langs.filter((l) => l !== "en").map((l) => <option key={l} value={l}>{LANGS[l].name}</option>)}</select>
@@ -94,7 +103,7 @@ export default function NoticeDrafter({ onPublished }: { onPublished: () => void
           <div className={`grid gap-4 ${langs.length > 1 ? "lg:grid-cols-2" : ""}`}>{col("en")}{langs.length > 1 && col(right)}</div>
           <div className="flex flex-wrap gap-2">
             <button className="btn btn-primary" onClick={publish}>Publish as {nextVersion(db.school.noticeVersion)}</button>
-            <button className="btn" disabled={busy} onClick={generate}>{busy ? "Drafting…" : "Draft again"}</button>
+            <button className="btn" onClick={generate}>Start over</button>
           </div>
         </>
       )}

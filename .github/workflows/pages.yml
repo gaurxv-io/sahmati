@@ -24,7 +24,6 @@ jobs:
       - name: Build static site
         run: bunx vite build
         env:
-          GITHUB_PAGES: "1"
           PAGES_BASE: /${{ github.event.repository.name }}/
       - name: SPA fallback so deep links like /app or /c/123 load
         run: |

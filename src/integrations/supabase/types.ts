@@ -815,6 +815,7 @@ export type Database = {
         Args: { _hash: string; _sid: string; _ttl_seconds?: number }
         Returns: Json
       }
+      otp_request: { Args: { _sid: string }; Returns: Json }
       pack_view: { Args: { _token: string }; Returns: Json }
       paper_access: {
         Args: { _name: string; _write: boolean }

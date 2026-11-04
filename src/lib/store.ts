@@ -6,7 +6,8 @@ import { chainString } from "./sample";
 import { sha256 } from "./hash";
 import { BREACH_STEPS } from "./derive";
 import { toast } from "@/components/toast";
-import { sendParentCode } from "./otp.functions";
+/** Result of asking for a parent OTP. `code` is set only for demo schools, which show it on screen. */
+export type SendCodeResult = { ok: true; code?: string } | { ok: false; error: "invalid" | "rate" | "sms" };
 
 /**
  * Data store backed by Lovable Cloud. Public API (useDB, actions.*, verifyLedger) is unchanged.
@@ -290,7 +291,12 @@ export const actions = {
   }),
   /** Parent consent: validated and written by the server in one step. */
   /** Asks the server for a code. Demo school (or no SMS provider): the code comes back to show on screen. */
-  sendCode: (sid: string) => sendParentCode({ data: { sid } }),
+  sendCode: async (sid: string): Promise<SendCodeResult> => {
+    // The database issues the code (demo schools only); real schools need an SMS sender.
+    const { data, error } = await supabase.rpc("otp_request", { _sid: sid });
+    if (error) throw error;
+    return data as SendCodeResult;
+  },
   /** Returns the ledger event, or an error key: bad | locked | expired | nocode | invalid. Never throws for a wrong code. */
   giveConsent: async (sid: string, choices: Student["choices"], code: string): Promise<{ ok: true; event: LedgerEvent } | { ok: false; error: string }> => {
     const r = await supabase.rpc("give_consent", { _sid: sid, _web: choices.web, _newsletter: choices.newsletter, _code: code });
