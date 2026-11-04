@@ -8,7 +8,9 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 // GitHub Pages serves static files only, so that build is a client-side SPA under /<repo>/.
 // Set GITHUB_PAGES=1 (the Pages workflow does) to get it; every other build is unchanged.
-const pagesBase = process.env["GITHUB_PAGES"] ? (process.env["PAGES_BASE"] ?? "/sahmati/") : undefined;
+const pagesBase = process.env["GITHUB_PAGES"]
+  ? (process.env["PAGES_BASE"] ?? "/sahmati/")
+  : undefined;
 
 export default defineConfig(
   pagesBase
