@@ -10,7 +10,7 @@ import { toast } from "@/components/toast";
 export type SendCodeResult = { ok: true; code?: string } | { ok: false; error: "invalid" | "rate" | "sms" };
 
 /**
- * Data store backed by Lovable Cloud. Public API (useDB, actions.*, verifyLedger) is unchanged.
+ * Data store backed by Supabase. Public API (useDB, actions.*, verifyLedger) is unchanged.
  * Scope is chosen from the current path and the signed-in user:
  *  - /c/:sid           -> parent view of one student (server functions only)
  *  - /app* signed in   -> the user's own school (or the "Create your school" step)

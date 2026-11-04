@@ -1,4 +1,4 @@
--- Sahmati: multi-school data on Lovable Cloud
+-- Sahmati: multi-school data on Supabase
 create table public.schools (
   id uuid primary key default gen_random_uuid(),
   name text not null, city text not null default '', slug text not null unique check (slug ~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'),
