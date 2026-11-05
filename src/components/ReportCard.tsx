@@ -25,6 +25,8 @@ const REMARK: Record<string, string> = {
   "Breach plan": "No plan for reporting a breach within 72 hours.",
 };
 
+const listOf = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
+
 export type ReportResult = { score: number; gaps: string[] };
 
 export function ReportCard({ onResult }: { onResult: (r: ReportResult) => void }) {
@@ -40,7 +42,7 @@ export function ReportCard({ onResult }: { onResult: (r: ReportResult) => void }
   const weakest = [...subjects].filter((s) => s.pct !== null && s.pct < 1).sort((a, b) => a.pct! - b.pct!);
   const result = score >= 80 ? "Ready" : score >= 50 ? "Needs work" : "Not ready";
   const remark = !done ? "" : weakest.length
-    ? `${REMARK[weakest[0]!.name]} ${weakest.length > 1 ? `Also weak in ${weakest.slice(1).map((s) => s.name.toLowerCase()).join(" and ")}.` : ""} Fix before 13 May 2027.`
+    ? `${REMARK[weakest[0]!.name]} ${weakest.length > 1 ? `Also weak in ${listOf(weakest.slice(1).map((s) => s.name.toLowerCase()))}.` : ""} Fix before 13 May 2027.`
     : "Excellent work. Keep records up to date for every new admission.";
 
   useEffect(() => {
