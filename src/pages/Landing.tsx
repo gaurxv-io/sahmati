@@ -11,13 +11,25 @@ import { daysLeft, stats } from "@/lib/derive";
 const GAZETTE = "https://www.meity.gov.in/static/uploads/2025/11/53450e6e5dc0bfa85ebd78686cadad39.pdf";
 const PIB = "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/nov/doc20251117695301.pdf";
 
+const HEADER_GAP = 72; // px kept clear under the sticky header when jumping to a section
+
 // Smooth, eased wheel scrolling on the landing page only. The console keeps native scroll,
 // and people who ask their OS for reduced motion get native scroll too.
 function useSmoothScroll() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const lenis = new Lenis({ autoRaf: true, lerp: 0.12, anchors: { offset: -72 } });
-    return () => lenis.destroy();
+    const lenis = new Lenis({ autoRaf: true, lerp: 0.12 });
+    // In-page links ("#faq"): glide there and stop below the sticky header.
+    const onClick = (e: MouseEvent) => {
+      const link = e.target instanceof Element ? e.target.closest<HTMLAnchorElement>('a[href^="#"]') : null;
+      const target = link && link.hash.length > 1 ? document.getElementById(link.hash.slice(1)) : null;
+      if (!link || !target || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      lenis.scrollTo(target, { offset: -HEADER_GAP });
+      history.pushState(null, "", link.hash);
+    };
+    document.addEventListener("click", onClick);
+    return () => { document.removeEventListener("click", onClick); lenis.destroy(); };
   }, []);
 }
 
