@@ -87,3 +87,23 @@
   .hero-bar { transition: none; }
   .live-ping, .feed-in { animation: none; }
 }
+
+/* Landing: parent walkthrough phone. */
+.ps-phone { width: min(320px, 100%); aspect-ratio: 320 / 660; padding: 10px; border-radius: 50px; background: #151A17; box-shadow: 0 40px 70px -30px rgba(15, 20, 18, 0.45), 0 0 0 1px rgba(15, 20, 18, 0.08), inset 0 0 0 2px #2A312D; }
+.ps-screen { height: 100%; border-radius: 40px; background: #F7F8F7; }
+.ps-island { position: absolute; left: 50%; top: 8px; height: 22px; width: 84px; transform: translateX(-50%); border-radius: 9999px; background: #151A17; }
+.ps-slide { opacity: 0; transform: translateX(28px) scale(0.985); transition: opacity 450ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1); pointer-events: none; }
+.ps-slide-past { transform: translateX(-28px) scale(0.985); }
+.ps-slide-on { opacity: 1; transform: none; pointer-events: auto; }
+.ps-tap { position: absolute; z-index: 2; height: 36px; width: 36px; margin: -18px 0 0 -18px; border-radius: 9999px; background: rgba(4, 122, 68, 0.22); box-shadow: 0 0 0 2px rgba(4, 122, 68, 0.55); opacity: 0; animation: ps-tap 1300ms ease-out 1700ms both; }
+@keyframes ps-tap { 0% { opacity: 0; transform: scale(1.6); } 25% { opacity: 1; transform: scale(0.85); } 45% { transform: scale(1); } 100% { opacity: 0; transform: scale(1.9); } }
+.ps-step { transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
+.ps-body { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms ease; }
+.ps-body-on { max-height: 160px; opacity: 1; }
+.ps-progress { transform-origin: left; animation-name: ps-progress; animation-timing-function: linear; animation-fill-mode: both; }
+@keyframes ps-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .ps-slide, .ps-step, .ps-body { transition: none; }
+  .ps-tap { display: none; }
+  .ps-body { max-height: none; opacity: 1; }
+}
