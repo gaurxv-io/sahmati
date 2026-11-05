@@ -11,7 +11,7 @@ const STEP_MS = 4200;
 
 type Step = { title: string; body: string; shot?: string; alt: string; tap?: { x: number; y: number } };
 const STEPS: Step[] = [
-  { title: "A link arrives on WhatsApp", body: "The school sends each parent a personal link for their child. No app to install, no password.", alt: "The school's WhatsApp message with a consent link for Vihaan.", tap: { x: 50, y: 66 } },
+  { title: "A link arrives on WhatsApp", body: "The school sends each parent a personal link for their child. No app to install, no password.", alt: "The school's WhatsApp message with a consent link for Vihaan." },
   { title: "Read and choose", body: "The parent sees what the school keeps and why, then says yes or no to photos and newsletters. In English, Hindi and six more languages.", shot: "phone-choose.jpg", alt: "Consent page: what the school keeps, and the parent ticking photos on the school website.", tap: { x: 11, y: 63 } },
   { title: "Confirm with a code", body: "A 6-digit code goes to the parent's own phone, so the school can show it was really them.", shot: "phone-otp.jpg", alt: "Consent page: the 6-digit code entered and the Give consent button.", tap: { x: 50, y: 87 } },
   { title: "Get a receipt", body: "The parent gets a receipt number on WhatsApp, and can change or withdraw consent any time from the same link.", shot: "phone-receipt.jpg", alt: "Consent recorded, with the receipt number, student, parent, time and OTP check." },
@@ -32,7 +32,7 @@ function useOnScreen<T extends Element>() {
   return [ref, on] as const;
 }
 
-function WhatsAppScreen() {
+function WhatsAppScreen({ tapping }: { tapping: boolean }) {
   return (
     <div className="flex h-full flex-col bg-[#ECE7DE]">
       <div className="flex items-center gap-2.5 bg-[#F6F6F3] px-3 py-2.5">
@@ -48,7 +48,8 @@ function WhatsAppScreen() {
         <div className="max-w-[88%] rounded-[4px_12px_12px_12px] bg-white px-3 py-2.5 text-[13px] leading-snug text-ink-2 shadow-[0_1px_1px_rgba(15,20,18,0.06)]">
           <p>Namaste Meena ji. Under India's new data protection law we need your consent to keep Vihaan's school records. It takes under a minute.</p>
           <p lang="hi" className="mt-1.5 text-[12.5px] text-muted">कृपया नीचे दिए लिंक से सहमति दें।</p>
-          <span className="mt-2.5 block rounded-md border border-black/5 bg-[#F3F7F4] px-2.5 py-2">
+          <span className="relative mt-2.5 block rounded-md border border-black/5 bg-[#F3F7F4] px-2.5 py-2">
+            {tapping && <span className="ps-tap" style={{ left: "50%", top: "50%" }} aria-hidden />}
             <b className="block text-[12.5px] font-semibold text-green">Consent for Vihaan · UKG-A</b>
             <span className="block text-[11px] text-muted-2">greenvalley.sahmati.in</span>
           </span>
@@ -81,7 +82,7 @@ function Phone({ active }: { active: number }) {
                 {s.shot
                   ? <><img src={img(s.shot)} alt={s.alt} width={600} height={1246} loading="lazy" decoding="async" className="block h-full w-auto max-w-full object-contain object-top" />
                   <span className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-canvas to-transparent" aria-hidden /></>
-                  : <div role="img" aria-label={s.alt} className="h-full"><WhatsAppScreen /></div>}
+                  : <div role="img" aria-label={s.alt} className="h-full"><WhatsAppScreen tapping={i === active} /></div>}
                 {s.tap && i === active && <span key={`tap-${active}`} className="ps-tap" style={{ left: `${s.tap.x}%`, top: `${s.tap.y}%` }} aria-hidden />}
               </div>
             </div>
