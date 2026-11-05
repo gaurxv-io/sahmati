@@ -5,6 +5,8 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Logo, Seal } from "@/components/brand";
 import { HeroCard } from "@/components/HeroCard";
+import { ReportCard, type ReportResult } from "@/components/ReportCard";
+import { TamperDemo } from "@/components/TamperDemo";
 import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
 import { daysLeft } from "@/lib/derive";
@@ -52,11 +54,12 @@ export default function Landing() {
   const db = useDB()!;
   const [form, setForm] = useState({ name: "", role: "Principal", school: "", city: "", phone: "", size: "500 – 1,000" });
   const [sent, setSent] = useState(false);
+  const [report, setReport] = useState<ReportResult | null>(null);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!/^\+?[\d\s-]{10,14}$/.test(form.phone)) { toast("Enter a 10-digit mobile number so we can reach you on WhatsApp."); return; }
-    await actions.addLead(form);
+    await actions.addLead({ ...form, ...(report ? { score: report.score, gaps: report.gaps } : {}) });
     setSent(true);
   };
 
@@ -67,14 +70,14 @@ export default function Landing() {
       <header className="sticky top-0 z-20 border-b border-line bg-white">
         <div className="mx-auto flex max-w-[1200px] items-center gap-6 px-4 py-3.5 sm:px-8">
           <Logo />
-          <nav className="ml-auto hidden items-center gap-6 text-sm md:flex" aria-label="Main">
-            {[["#why", "Why DPDP"], ["#how", "How it works"], ["#product", "Product"], ["#pricing", "Pricing"], ["#faq", "FAQ"]].map(([h, l]) => (
+          <nav className="ml-auto hidden items-center gap-6 text-sm lg:flex" aria-label="Main">
+            {[["#why", "Why DPDP"], ["#report-card", "Report card"], ["#how", "How it works"], ["#product", "Product"], ["#pricing", "Pricing"], ["#faq", "FAQ"]].map(([h, l]) => (
               <a key={h} href={h} className="text-muted hover:text-ink">{l}</a>
             ))}
             <Link to="/audit" className="text-muted hover:text-ink">Self-audit</Link>
             <Link to="/login" className="text-muted hover:text-ink">Sign in</Link>
           </nav>
-          <a href="#audit" className="btn btn-primary ml-auto md:ml-0">Book free audit</a>
+          <a href="#audit" className="btn btn-primary ml-auto lg:ml-0">Book free audit</a>
         </div>
       </header>
 
@@ -136,7 +139,11 @@ export default function Landing() {
         </div>
       </Section>
 
-      <Section id="how" label="02 · HOW IT WORKS" title="Five steps. No new software for your staff to learn." white>
+      <Section id="report-card" label="02 · YOUR SCHOOL'S REPORT CARD" title="How would your school score today?" white>
+        <ReportCard onResult={setReport} />
+      </Section>
+
+      <Section id="how" label="03 · HOW IT WORKS" title="Five steps. No new software for your staff to learn.">
         <div className="grid overflow-hidden rounded-xl border border-line sm:grid-cols-2 lg:grid-cols-5">
           {[
             ["Free audit", "We map where your school keeps student data and give you a written gap report."],
@@ -154,7 +161,7 @@ export default function Landing() {
         </div>
       </Section>
 
-      <Section id="product" label="03 · THE PRODUCT" title="Try it yourself. It's live.">
+      <Section id="product" label="04 · THE PRODUCT" title="Try it yourself. It's live." white>
         <div className="grid gap-4 md:grid-cols-3">
           {([
             ["/app", "School console", "Consent register, WhatsApp reminders, parent requests and the readiness checklist."],
@@ -170,18 +177,22 @@ export default function Landing() {
         </div>
       </Section>
 
+      <Section id="tamper" label="05 · TAMPER-EVIDENT RECORDS" title="Try to cheat the ledger.">
+        <TamperDemo db={db} />
+      </Section>
+
       <section className="border-y border-line bg-white">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-12 px-4 py-20 sm:px-8 sm:py-24">
           <div className="flex flex-[0_1_300px] justify-center"><Seal earned size="xl" /></div>
           <div className="flex min-w-0 flex-[1_1_480px] flex-col gap-4">
-            <span className="font-mono text-xs tracking-[0.08em] text-muted-2">04 · DPDP READY SCHOOL</span>
+            <span className="font-mono text-xs tracking-[0.08em] text-muted-2">06 · DPDP READY SCHOOL</span>
             <h2 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] sm:text-[42px]">Show parents you take their child's privacy seriously.</h2>
             <p className="max-w-[620px] text-base leading-relaxed text-muted">Schools that complete notices, consent and data safeguards on Sahmati receive the DPDP Ready School badge for their website, admission brochures and notice board. Anyone can check a parent's consent receipt at <Link to="/verify" className="font-semibold">sahmati.in/verify</Link>.</p>
           </div>
         </div>
       </section>
 
-      <Section id="pricing" label="05 · PRICING" title="Free for your school in year one.">
+      <Section id="pricing" label="07 · PRICING" title="Free for your school in year one.">
         <div className="grid gap-4 md:grid-cols-3">
           {[
             ["SCHOOL · YEAR 1", "₹0", "first year", "Free audit, setup, WhatsApp consent drive, dashboard, reports and the DPDP Ready badge.", true],
@@ -197,7 +208,7 @@ export default function Landing() {
         </div>
       </Section>
 
-      <Section id="faq" label="06 · FAQ" title="Questions principals ask first." white>
+      <Section id="faq" label="08 · FAQ" title="Questions principals ask first." white>
         <div className="grid gap-x-10 md:grid-cols-2">
           {[
             ["Do parents have to pay to give consent?", "No. Consent is always free."],
@@ -217,7 +228,7 @@ export default function Landing() {
 
       <section id="audit" className="mx-auto grid max-w-[1200px] gap-10 px-4 py-20 sm:px-8 sm:py-24 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
-          <span className="font-mono text-xs tracking-[0.08em] text-muted-2">07 · FREE DPDP AUDIT</span>
+          <span className="font-mono text-xs tracking-[0.08em] text-muted-2">09 · FREE DPDP AUDIT</span>
           <h2 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] sm:text-[42px]">Find out where your school stands. 45 minutes, no cost.</h2>
           <p className="max-w-[520px] text-base text-muted">We visit your school, review how student data is collected and stored, and send a written report of what to fix before the deadline.</p>
           <p className="text-sm text-muted">Not sure yet? <Link to="/audit" className="font-semibold underline underline-offset-2">Take the 5-minute self-audit first.</Link></p>

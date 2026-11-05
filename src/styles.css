@@ -26,11 +26,13 @@
   --color-amber-soft: #FBF1DF;
   --color-danger: #B42318;
   --color-danger-soft: #FDECEA;
+  --color-pen: #C0271D;
   --color-white: #fff;
 
   --font-sans: "Geist", "Segoe UI", system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
   --font-hi: "Noto Sans Devanagari", "Nirmala UI", Mangal, sans-serif;
+  --font-pen: "Kalam", "Segoe Print", cursive;
 
   --shadow-card: 0 16px 40px rgba(15, 20, 18, 0.06);
   --shadow-lift: 0 16px 40px rgba(15, 20, 18, 0.08);
@@ -86,4 +88,27 @@
   .hero-card, .hero-card:hover { transform: none; }
   .hero-bar { transition: none; }
   .live-ping, .feed-in { animation: none; }
+}
+
+/* Landing: DPDP report card, graded in a teacher's red pen, with a rubber stamp. */
+.report-card { background-color: #FFFDF7; background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(15, 20, 18, 0.045) 27px 28px); border: 1px solid #E6E0CF; box-shadow: 0 1px 0 #E6E0CF, 0 18px 40px -22px rgba(60, 50, 20, 0.35); }
+.report-card::before { content: ""; position: absolute; inset: 0 auto 0 18px; width: 1px; background: rgba(192, 39, 29, 0.18); }
+.rc-choice { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease; }
+.rc-choice:active { transform: scale(0.97); }
+.grade { display: inline-block; animation: grade-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.remark { animation: fade-up 400ms ease both 120ms; }
+.stamp { color: rgba(4, 122, 68, 0.85); transform: rotate(-12deg); animation: stamp 520ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both 250ms; mix-blend-mode: multiply; }
+@keyframes grade-in { from { opacity: 0; transform: scale(1.6) rotate(-8deg); } to { opacity: 1; transform: none; } }
+@keyframes fade-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes stamp { 0% { opacity: 0; transform: rotate(-12deg) scale(2.2); } 60% { opacity: 1; transform: rotate(-12deg) scale(0.94); } 100% { opacity: 0.9; transform: rotate(-12deg) scale(1); } }
+
+/* Landing: tamper demo. */
+.chain-block { transition: border-color 200ms ease, box-shadow 200ms ease; }
+.chain-bad { box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.1); animation: shake 320ms ease; }
+.chain-link { transition: background-color 200ms ease; }
+@keyframes shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .grade, .remark, .chain-bad { animation: none; }
+  .stamp { animation: none; opacity: 0.9; }
 }
