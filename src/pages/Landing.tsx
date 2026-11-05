@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Logo, Seal } from "@/components/brand";
 import { HeroCard } from "@/components/HeroCard";
-import { TamperDemo } from "@/components/TamperDemo";
+import { ParentSteps } from "@/components/ParentSteps";
 import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
 import { daysLeft } from "@/lib/derive";
@@ -69,7 +69,7 @@ export default function Landing() {
         <div className="mx-auto flex max-w-[1200px] items-center gap-6 px-4 py-3.5 sm:px-8">
           <Logo />
           <nav className="ml-auto hidden items-center gap-6 text-sm lg:flex" aria-label="Main">
-            {[["#why", "Why DPDP"], ["#how", "How it works"], ["#product", "Product"], ["#pricing", "Pricing"], ["#faq", "FAQ"]].map(([h, l]) => (
+            {[["#why", "Why DPDP"], ["#how", "How it works"], ["#parents", "For parents"], ["#product", "Product"], ["#pricing", "Pricing"], ["#faq", "FAQ"]].map(([h, l]) => (
               <a key={h} href={h} className="text-muted hover:text-ink">{l}</a>
             ))}
             <Link to="/audit" className="text-muted hover:text-ink">Self-audit</Link>
@@ -171,8 +171,8 @@ export default function Landing() {
         </div>
       </Section>
 
-      <Section id="tamper" label="04 · TAMPER-EVIDENT RECORDS" title="Try to cheat the ledger." white>
-        <TamperDemo db={db} />
+      <Section id="parents" label="04 · FOR PARENTS" title="How a parent gives consent, in under a minute." white>
+        <ParentSteps />
       </Section>
 
       <section>

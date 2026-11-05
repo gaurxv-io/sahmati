@@ -87,15 +87,3 @@
   .hero-bar { transition: none; }
   .live-ping, .feed-in { animation: none; }
 }
-
-/* Landing: tamper demo. */
-.rc-choice { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease; }
-.rc-choice:active { transform: scale(0.97); }
-.chain-block { transition: border-color 200ms ease, box-shadow 200ms ease; }
-.chain-bad { box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.1); animation: shake 320ms ease; }
-.chain-link { transition: background-color 200ms ease; }
-@keyframes shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
-
-@media (prefers-reduced-motion: reduce) {
-  .chain-bad { animation: none; }
-}
