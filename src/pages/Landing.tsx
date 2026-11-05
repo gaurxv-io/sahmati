@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, ExternalLink } from "lucide-react";
 import { Logo, Seal } from "@/components/brand";
 import { toast } from "@/components/toast";
-import { HeroDemo } from "@/components/landing/HeroDemo";
+import { HeroCard } from "@/components/HeroCard";
 import { DeadlineLine } from "@/components/landing/DeadlineLine";
 import { QuickCheck, type QuickResult } from "@/components/landing/QuickCheck";
 import { ReceiptCheck } from "@/components/landing/ReceiptCheck";
@@ -105,7 +105,7 @@ export default function Landing() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1200px] items-center gap-14 px-4 pb-16 pt-12 sm:px-8 xl:grid-cols-[minmax(0,1fr)_680px] xl:gap-8 xl:pb-20 xl:pt-16">
+      <div className="mx-auto grid max-w-[1200px] items-center gap-12 px-4 pb-16 pt-14 sm:px-8 lg:grid-cols-[1fr_520px] lg:pb-24 lg:pt-20">
         <div className="flex max-w-[600px] flex-col gap-6">
           <a href="#deadline" className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-white px-3 py-1 text-[12.5px] text-muted hover:text-ink">
             <span className="h-1.5 w-1.5 rounded-full bg-amber" /> Every school must comply by 13 May 2027
@@ -124,7 +124,7 @@ export default function Landing() {
             ))}
           </ul>
         </div>
-        <HeroDemo db={db} />
+        <HeroCard db={db} />
       </div>
 
       <section id="deadline" className="border-y border-line bg-white" aria-label="DPDP timeline">

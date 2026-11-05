@@ -88,37 +88,6 @@
   .live-ping, .feed-in { animation: none; }
 }
 
-/* Landing: the parent's phone in the hero demo. */
-.phone { width: 272px; height: 560px; padding: 9px; border-radius: 46px; background: #151A17; box-shadow: 0 30px 60px -20px rgba(15, 20, 18, 0.35), 0 0 0 1px rgba(15, 20, 18, 0.08); }
-.phone-screen { display: flex; height: 100%; flex-direction: column; overflow: hidden; border-radius: 37px; background: #fff; }
-.chat { background: #ECE7DE; }
-.bubble { border-radius: 4px 12px 12px 12px; background: #fff; box-shadow: 0 1px 1px rgba(15, 20, 18, 0.06); }
-.typing { display: inline-flex; gap: 3px; }
-.typing i { display: block; height: 6px; width: 6px; border-radius: 9999px; background: #9AA39E; animation: typing 1s infinite ease-in-out; }
-.typing i:nth-child(2) { animation-delay: 150ms; }
-.typing i:nth-child(3) { animation-delay: 300ms; }
-.tap-target { position: relative; }
-.tap-target::after { content: ""; position: absolute; left: 50%; top: 50%; height: 28px; width: 28px; margin: -14px 0 0 -14px; border-radius: 9999px; background: rgba(4, 122, 68, 0.28); opacity: 0; animation: tap 700ms ease-out 1500ms both; }
-.sheet { animation: sheet-up 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.switch { position: relative; display: inline-block; height: 18px; width: 30px; flex-shrink: 0; border-radius: 9999px; background: var(--color-line-2); transition: background 200ms ease; }
-.switch-thumb { position: absolute; left: 2px; top: 2px; height: 14px; width: 14px; border-radius: 9999px; background: #fff; box-shadow: 0 1px 2px rgba(15, 20, 18, 0.2); transition: transform 200ms ease; }
-.switch-on { background: var(--color-brand-hover); }
-.switch-on .switch-thumb { transform: translateX(12px); }
-.switch-anim { animation: switch-bg 1ms linear 1000ms both; background: var(--color-line-2); }
-.switch-anim .switch-thumb { animation: switch-thumb 220ms ease 1000ms both; transform: none; }
-.otp-box { animation: otp-pop 220ms cubic-bezier(0.22, 1, 0.36, 1) both; border-color: var(--color-green-line); }
-.press { animation: press 260ms ease 1800ms both; }
-.press-late { animation-delay: 1150ms; }
-.pop { animation: pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-@keyframes typing { 0%, 60%, 100% { transform: none; opacity: 0.5; } 30% { transform: translateY(-3px); opacity: 1; } }
-@keyframes tap { 0% { opacity: 0; transform: scale(0.4); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(2.2); } }
-@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
-@keyframes switch-bg { to { background: var(--color-brand-hover); } }
-@keyframes switch-thumb { to { transform: translateX(12px); } }
-@keyframes otp-pop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
-@keyframes press { 50% { transform: scale(0.96); filter: brightness(0.94); } }
-@keyframes pop { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: none; } }
-
 /* Landing: answer-driven motion elsewhere on the page. */
 .meter, .timeline-fill { transition: width 900ms cubic-bezier(0.22, 1, 0.36, 1); }
 .choice { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease; }
@@ -132,9 +101,7 @@
 .faq-item[open] .faq-plus { transform: rotate(45deg); }
 
 @media (prefers-reduced-motion: reduce) {
-  .typing i, .tap-target::after, .sheet, .otp-box, .press, .pop, .hash-reveal, .switch-anim, .switch-anim .switch-thumb { animation: none; }
-  .switch-anim { background: var(--color-brand-hover); }
-  .switch-anim .switch-thumb { transform: translateX(12px); }
+  .hash-reveal { animation: none; }
   .meter, .timeline-fill, .mobile-cta, .faq-item .faq-plus { transition: none; }
 }
 
@@ -142,22 +109,4 @@
 .step:not(:last-child)::after { content: ""; position: absolute; left: 18px; top: 42px; bottom: -26px; width: 1px; background: var(--color-line-2); }
 @media (min-width: 1024px) {
   .step:not(:last-child)::after { left: 46px; right: -14px; top: 18px; bottom: auto; width: auto; height: 1px; }
-}
-
-/* Landing hero, second pass: a tinted stage, a tilted phone, a register that glows on sync. */
-.hero-stage { background-color: #E4F1E9; background-image: radial-gradient(rgba(4, 122, 68, 0.14) 1px, transparent 1.2px); background-size: 18px 18px; border: 1px solid #CFE6D8; }
-.phone { width: 260px; height: 540px; }
-@media (min-width: 640px) { .phone-tilt { transform: rotate(-3deg); } }
-.hero-card { box-shadow: 0 24px 48px -24px rgba(4, 60, 34, 0.28), 0 0 0 1px rgba(4, 60, 34, 0.04); }
-.hero-card:hover { box-shadow: 0 30px 56px -24px rgba(4, 60, 34, 0.34), 0 0 0 1px rgba(4, 60, 34, 0.06); }
-.ring-arc { transition: stroke-dashoffset 900ms cubic-bezier(0.22, 1, 0.36, 1); }
-.sync-glow { animation: sync-glow 1200ms ease-out both; }
-@keyframes sync-glow { 0% { box-shadow: 0 0 0 0 rgba(0, 196, 106, 0.55), inset 0 0 0 1.5px rgba(0, 196, 106, 0.9); } 100% { box-shadow: 0 0 0 14px rgba(0, 196, 106, 0), inset 0 0 0 1.5px rgba(0, 196, 106, 0); } }
-.ledger-new { animation: ledger-new 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-@keyframes ledger-new { from { opacity: 0; transform: translateY(-10px); background: var(--color-green-soft); } 60% { background: var(--color-green-soft); } to { opacity: 1; transform: none; } }
-.receipt-slip { position: relative; border-radius: 10px; background: var(--color-canvas); border: 1px dashed var(--color-line-2); }
-@media (prefers-reduced-motion: reduce) {
-  .phone-tilt { transform: none; }
-  .ring-arc { transition: none; }
-  .sync-glow, .ledger-new { animation: none; }
 }
