@@ -175,7 +175,7 @@ export default function Landing() {
         <TamperDemo db={db} />
       </Section>
 
-      <section className="border-y border-line bg-white">
+      <section>
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-12 px-4 py-20 sm:px-8 sm:py-24">
           <div className="flex flex-[0_1_300px] justify-center"><Seal earned size="xl" /></div>
           <div className="flex min-w-0 flex-[1_1_480px] flex-col gap-4">
@@ -186,7 +186,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <Section id="pricing" label="06 · PRICING" title="Free for your school in year one.">
+      <Section id="pricing" label="06 · PRICING" title="Free for your school in year one." white>
         <div className="grid gap-4 md:grid-cols-3">
           {[
             ["SCHOOL · YEAR 1", "₹0", "first year", "Free audit, setup, WhatsApp consent drive, dashboard, reports and the DPDP Ready badge.", true],
@@ -202,7 +202,7 @@ export default function Landing() {
         </div>
       </Section>
 
-      <Section id="faq" label="07 · FAQ" title="Questions principals ask first." white>
+      <Section id="faq" label="07 · FAQ" title="Questions principals ask first.">
         <div className="grid gap-x-10 md:grid-cols-2">
           {[
             ["Do parents have to pay to give consent?", "No. Consent is always free."],
