@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
-import { sortedStudents, stats } from "@/lib/derive";
+import { BANDS, band, sortedStudents, stats } from "@/lib/derive";
 import type { DB, Student } from "@/lib/types";
 
 // The landing page's "live" overview card. On first view the numbers count up and the bars
@@ -66,8 +66,13 @@ export function HeroCard({ db }: { db: DB }) {
 
   const queue = useMemo(() => {
     const pending = sortedStudents(db).filter((s) => s.status === "pending");
-    // Spread the picks across classes so different bars move.
-    return pending.filter((_, i) => i % 3 === 0).slice(0, FEED_LIMIT);
+    // Take turns across the class bands so a different bar moves each time.
+    const byBand = BANDS.map((name) => pending.filter((s) => band(s.cls) === name));
+    const picks: Student[] = [];
+    for (let round = 0; picks.length < FEED_LIMIT && byBand.some((b) => b.length > round); round++) {
+      for (const list of byBand) { const s = list[round]; if (s && picks.length < FEED_LIMIT) picks.push(s); }
+    }
+    return picks;
   }, [db]);
 
   // Feed a new sample consent every few seconds while the card is on screen.
