@@ -87,26 +87,3 @@
   .hero-bar { transition: none; }
   .live-ping, .feed-in { animation: none; }
 }
-
-/* Landing: answer-driven motion elsewhere on the page. */
-.meter, .timeline-fill { transition: width 900ms cubic-bezier(0.22, 1, 0.36, 1); }
-.choice { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease; }
-.choice:active { transform: scale(0.97); }
-.hash-reveal { animation: hash-reveal 700ms steps(24) 150ms both; }
-@keyframes hash-reveal { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }
-.mobile-cta { transform: translateY(110%); transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1); }
-.mobile-cta-on { transform: none; }
-.faq-item summary::-webkit-details-marker { display: none; }
-.faq-item .faq-plus { transition: transform 200ms ease; }
-.faq-item[open] .faq-plus { transform: rotate(45deg); }
-
-@media (prefers-reduced-motion: reduce) {
-  .hash-reveal { animation: none; }
-  .meter, .timeline-fill, .mobile-cta, .faq-item .faq-plus { transition: none; }
-}
-
-/* Landing: the five steps are joined by a line, down on phones and across on wide screens. */
-.step:not(:last-child)::after { content: ""; position: absolute; left: 18px; top: 42px; bottom: -26px; width: 1px; background: var(--color-line-2); }
-@media (min-width: 1024px) {
-  .step:not(:last-child)::after { left: 46px; right: -14px; top: 18px; bottom: auto; width: auto; height: 1px; }
-}
