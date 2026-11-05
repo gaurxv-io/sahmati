@@ -15,7 +15,7 @@ const STEPS: { title: string; body: string; shot?: { src: string; w: number; h: 
 
 function WhatsAppPreview() {
   return (
-    <div className="flex h-full flex-col justify-center gap-2 bg-[#ECE7DE] p-4" aria-label="A school's WhatsApp message with a consent link" role="img">
+    <div className="flex h-full w-full flex-col justify-center gap-2 bg-[#ECE7DE] p-4" aria-label="A school's WhatsApp message with a consent link" role="img">
       <span className="mx-auto rounded-md bg-white/80 px-2 py-0.5 text-[10.5px] text-muted-2">Today</span>
       <div className="max-w-[92%] rounded-[4px_12px_12px_12px] bg-white px-3 py-2.5 text-[13px] leading-snug text-ink-2 shadow-[0_1px_1px_rgba(15,20,18,0.06)]">
         <b className="block text-[12px] font-semibold text-green">Green Valley Public School</b>
@@ -37,9 +37,9 @@ export function ParentSteps() {
       <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {STEPS.map((s, i) => (
           <li key={s.title} className="flex flex-col gap-4">
-            <div className="h-[260px] overflow-hidden rounded-xl border border-line bg-canvas">
+            <div className="flex h-[260px] items-center justify-center overflow-hidden rounded-xl border border-line bg-canvas">
               {s.shot ? (
-                <img src={s.shot.src} width={s.shot.w} height={s.shot.h} alt={s.shot.alt} loading="lazy" decoding="async" className="h-full w-full object-cover object-top" />
+                <img src={s.shot.src} width={s.shot.w} height={s.shot.h} alt={s.shot.alt} loading="lazy" decoding="async" className="h-auto max-h-full w-full object-contain" />
               ) : (
                 <WhatsAppPreview />
               )}
