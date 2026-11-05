@@ -105,7 +105,7 @@ export default function Landing() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1200px] items-center gap-14 px-4 pb-16 pt-12 sm:px-8 xl:grid-cols-[minmax(0,1fr)_640px] xl:gap-8 xl:pb-20 xl:pt-16">
+      <div className="mx-auto grid max-w-[1200px] items-center gap-14 px-4 pb-16 pt-12 sm:px-8 xl:grid-cols-[minmax(0,1fr)_680px] xl:gap-8 xl:pb-20 xl:pt-16">
         <div className="flex max-w-[600px] flex-col gap-6">
           <a href="#deadline" className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-white px-3 py-1 text-[12.5px] text-muted hover:text-ink">
             <span className="h-1.5 w-1.5 rounded-full bg-amber" /> Every school must comply by 13 May 2027

@@ -44,16 +44,18 @@ export function HeroDemo({ db }: { db: DB }) {
   const given = queue.slice(0, n + (scene === "done" ? 1 : 0)).map((s) => s.id);
 
   return (
-    <div ref={ref} className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-center sm:gap-0">
-      <div className="relative z-10 shrink-0">
-        {student ? <PhoneDemo scene={scene} student={student} school={db.school.name} n={n} /> : null}
+    <div ref={ref} className="hero-stage relative mx-auto w-full max-w-[680px] rounded-[28px] p-4 sm:p-7">
+      <div className="relative flex flex-col items-center gap-8 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div className="phone-tilt relative z-10 shrink-0">
+          {student ? <PhoneDemo scene={scene} student={student} school={db.school.name} n={n} /> : null}
+        </div>
+        <div className="w-full max-w-[380px] sm:w-[340px]">
+          <HeroCard db={db} given={given} seen={seen} />
+        </div>
       </div>
-      <div className="w-full max-w-[400px] sm:-ml-4 sm:mt-20 sm:w-[372px]">
-        <HeroCard db={db} given={given} seen={seen} />
-        <p className="mt-3 px-1 text-[13px] leading-snug text-muted-2 sm:pl-8">
-          A parent consents on their phone. Your register updates the same moment, with proof attached.
-        </p>
-      </div>
+      <p className="relative mt-5 text-center text-[13px] leading-snug text-green sm:text-left">
+        A parent consents on their phone. Your register updates the same moment, with proof attached.
+      </p>
     </div>
   );
 }

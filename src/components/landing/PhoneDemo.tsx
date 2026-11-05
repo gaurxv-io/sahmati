@@ -94,14 +94,25 @@ export function PhoneDemo({ scene, student, school, n }: { scene: Scene; student
               )}
 
               {scene === "done" && (
-                <div key="done" className="flex flex-1 flex-col items-center gap-2 pt-4 text-center">
-                  <span className="pop grid h-14 w-14 place-items-center rounded-full bg-green-soft"><Check className="h-7 w-7 text-green" strokeWidth={2.6} /></span>
-                  <b className="feed-in text-[16px] font-semibold text-ink">Consent recorded</b>
-                  <span className="feed-in text-[11.5px] text-muted">Thank you, {parent} ji. You can change or withdraw it anytime from the same link.</span>
-                  <span className="feed-in mt-2 w-full rounded-lg border border-line bg-canvas px-3 py-2.5 text-left">
-                    <span className="block text-[10.5px] text-muted-2">Receipt</span>
-                    <b className="block font-mono text-[13px] font-semibold text-ink">{sampleReceipt(student, n)}</b>
-                    <span className="mt-1 flex items-center gap-1 text-[10.5px] text-green"><ShieldCheck className="h-3 w-3" />Anyone can check it at sahmati.in/verify</span>
+                <div key="done" className="flex flex-1 flex-col items-center gap-2 pt-1 text-center">
+                  <span className="pop grid h-12 w-12 place-items-center rounded-full bg-green-soft"><Check className="h-6 w-6 text-green" strokeWidth={2.8} /></span>
+                  <b className="feed-in text-[15.5px] font-semibold text-ink">Consent recorded</b>
+                  <span className="feed-in text-[11.5px] leading-snug text-muted">Thank you, {parent} ji. Change or withdraw it anytime from the same link.</span>
+                  <ul className="feed-in mt-1 w-full divide-y divide-line rounded-lg border border-line text-left" style={{ animationDelay: "120ms" }}>
+                    {([["School records", true], ["Photos on the website", photos], ["Newsletter and events", !photos]] as const).map(([label, on]) => (
+                      <li key={label} className="flex items-center justify-between px-3 py-1.5 text-[11.5px]">
+                        <span className="text-ink-2">{label}</span>
+                        <span className={on ? "font-semibold text-green" : "text-muted-3"}>{on ? "Yes" : "No"}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <span className="receipt-slip feed-in mt-1 w-full px-3 pb-2.5 pt-3 text-left" style={{ animationDelay: "240ms" }}>
+                    <span className="flex items-baseline justify-between">
+                      <span className="text-[10.5px] text-muted-2">Receipt</span>
+                      <span className="text-[10px] text-muted-2">10:24 IST</span>
+                    </span>
+                    <b className="block font-mono text-[14px] font-semibold tracking-[0.02em] text-ink">{sampleReceipt(student, n)}</b>
+                    <span className="mt-1 flex items-center gap-1 text-[10.5px] text-green"><ShieldCheck className="h-3 w-3" />Check it at sahmati.in/verify</span>
                   </span>
                 </div>
               )}
