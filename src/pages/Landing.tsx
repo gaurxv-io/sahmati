@@ -1,4 +1,6 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import Lenis from "lenis";
+import "lenis/dist/lenis.css";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Logo, Seal } from "@/components/brand";
@@ -8,6 +10,16 @@ import { daysLeft, stats } from "@/lib/derive";
 
 const GAZETTE = "https://www.meity.gov.in/static/uploads/2025/11/53450e6e5dc0bfa85ebd78686cadad39.pdf";
 const PIB = "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/nov/doc20251117695301.pdf";
+
+// Smooth, eased wheel scrolling on the landing page only. The console keeps native scroll,
+// and people who ask their OS for reduced motion get native scroll too.
+function useSmoothScroll() {
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const lenis = new Lenis({ autoRaf: true, lerp: 0.12, anchors: { offset: -72 } });
+    return () => lenis.destroy();
+  }, []);
+}
 
 function Section({ id, label, title, children, white }: { id?: string; label: string; title: string; children: ReactNode; white?: boolean }) {
   return (
@@ -35,6 +47,8 @@ export default function Landing() {
     await actions.addLead(form);
     setSent(true);
   };
+
+  useSmoothScroll();
 
   return (
     <div className="bg-canvas">
