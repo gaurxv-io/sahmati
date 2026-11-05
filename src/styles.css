@@ -42,6 +42,7 @@
   *, ::after, ::before { border-color: var(--color-line); }
   button, [role="button"] { cursor: pointer; }
   html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
   body { @apply bg-canvas text-ink font-sans antialiased; font-size: 14px; line-height: 1.5; }
   h1, h2, h3 { @apply text-ink; text-wrap: balance; }
   a { @apply text-green; }

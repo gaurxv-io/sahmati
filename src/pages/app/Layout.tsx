@@ -71,7 +71,7 @@ export default function AppLayout() {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <div className="print:hidden sticky top-0 z-10 border-b border-line bg-canvas/90 backdrop-blur">
+        <div className="print:hidden sticky top-0 z-10 border-b border-line bg-canvas">
           <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-7">
             <div className="flex items-center gap-2 text-[13px] text-muted-2"><span className="hidden sm:inline">{db.school.name}</span><span className="hidden sm:inline">/</span><b className="font-semibold text-ink">{title}</b></div>
             <span className="ml-auto hidden items-center gap-2 rounded-full sm:inline-flex border border-line bg-white px-2.5 py-1 font-mono text-[11px] text-muted-2">{live ? <><span className="h-1.5 w-1.5 rounded-full bg-brand" />Live · synced</> : <><span className="h-1.5 w-1.5 rounded-full bg-muted-3" />Sample school · demo data</>}</span>

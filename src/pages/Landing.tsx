@@ -38,7 +38,7 @@ export default function Landing() {
 
   return (
     <div className="bg-canvas">
-      <header className="sticky top-0 z-20 border-b border-line bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-line bg-white">
         <div className="mx-auto flex max-w-[1200px] items-center gap-6 px-4 py-3.5 sm:px-8">
           <Logo />
           <nav className="ml-auto hidden items-center gap-6 text-sm md:flex" aria-label="Main">
