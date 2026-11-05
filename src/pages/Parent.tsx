@@ -55,7 +55,7 @@ export default function Parent() {
       <div className="border-b border-line bg-white">
         <div className="mx-auto flex max-w-[460px] items-center gap-2.5 px-4 py-3.5">
           <Crest name={db.school.name} />
-          <div><div className="text-sm font-semibold">{db.school.name}</div><div className="font-mono text-[11px] text-muted-2">{db.school.slug}.sahmati.in</div></div>
+          <div className="min-w-0 flex-1"><div className="text-sm font-semibold">{db.school.name}</div><div className="truncate font-mono text-[11px] text-muted-2" title={`${db.school.slug}.sahmati.in`}>{db.school.slug}.sahmati.in</div></div>
         </div>
       </div>
     </>

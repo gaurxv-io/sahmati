@@ -34,9 +34,9 @@ export default function AppLayout() {
     <div className="grid min-h-screen grid-cols-[minmax(0,1fr)] md:grid-cols-[236px_minmax(0,1fr)]">
       <aside className="print:hidden flex min-w-0 flex-col items-stretch gap-2.5 border-b border-line bg-white px-4 py-3 md:sticky md:top-0 md:h-screen md:gap-5 md:border-b-0 md:border-r md:px-3.5 md:py-5">
         <div className="px-1.5"><Logo to="/" /></div>
-        <div className="hidden items-center gap-2.5 rounded-xl border border-line p-2.5 md:flex">
+        <div className="hidden min-w-0 items-center gap-2.5 overflow-hidden rounded-xl border border-line p-2.5 md:flex">
           <Crest name={db.school.name} />
-          <div className="min-w-0"><div className="text-[13px] font-semibold leading-tight">{db.school.name}</div><div className="font-mono text-[11px] text-muted-2">{db.school.slug}.sahmati.in</div></div>
+          <div className="min-w-0 flex-1"><div className="text-[13px] font-semibold leading-tight">{db.school.name}</div><div className="truncate font-mono text-[11px] text-muted-2" title={`${db.school.slug}.sahmati.in`}>{db.school.slug}.sahmati.in</div></div>
         </div>
         <nav className="-mx-4 flex min-w-0 gap-0.5 overflow-x-auto px-4 md:mx-0 md:flex-col md:px-0" aria-label="Console">
           {nav_.map(([to, label, Icon]) => {
