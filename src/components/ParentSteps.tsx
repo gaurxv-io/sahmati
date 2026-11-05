@@ -71,18 +71,23 @@ function Phone({ active }: { active: number }) {
             <span className="ml-1 h-[10px] w-[20px] rounded-[3px] border border-ink p-[1.5px]"><span className="block h-full w-3/4 rounded-[1px] bg-ink" /></span>
           </span>
         </div>
-        <div className={`relative z-10 flex items-center justify-center gap-1 bg-white pb-2 text-[11px] text-muted-2 transition-opacity duration-300 ${active === 0 ? "opacity-0" : "opacity-100"}`} aria-hidden>
+        <div className={`relative z-10 flex items-center justify-center gap-1 border-b border-line bg-white pb-2 text-[11px] text-muted-2 transition-opacity duration-300 ${active === 0 ? "opacity-0" : "opacity-100"}`} aria-hidden>
           <Lock className="h-3 w-3" />greenvalley.sahmati.in
         </div>
-        <div className="absolute inset-x-0 bottom-0 top-[30px]">
+        <div className="absolute inset-x-0 bottom-[22px] top-[30px]">
           {STEPS.map((s, i) => (
-            <div key={s.title} className={`ps-slide absolute inset-x-0 bottom-0 ${i === 0 ? "top-0" : "top-[24px]"} ${i === active ? "ps-slide-on" : i < active ? "ps-slide-past" : ""}`} aria-hidden={i !== active}>
-              {s.shot
-                ? <img src={img(s.shot)} alt={s.alt} width={600} height={1246} loading="lazy" decoding="async" className="h-full w-full object-cover object-top" />
-                : <div role="img" aria-label={s.alt} className="h-full"><WhatsAppScreen /></div>}
-              {s.tap && i === active && <span key={`tap-${active}`} className="ps-tap" style={{ left: `${s.tap.x}%`, top: `${s.tap.y}%` }} aria-hidden />}
+            <div key={s.title} className={`ps-slide absolute inset-x-0 bottom-0 ${i === 0 ? "top-0" : "top-[25px] px-1.5 pt-1"} ${i === active ? "ps-slide-on" : i < active ? "ps-slide-past" : ""}`} aria-hidden={i !== active}>
+              <div className={`relative h-full ${s.shot ? "mx-auto w-fit max-w-full" : ""}`}>
+                {s.shot
+                  ? <img src={img(s.shot)} alt={s.alt} width={600} height={1246} loading="lazy" decoding="async" className="block h-full w-auto max-w-full object-contain object-top" />
+                  : <div role="img" aria-label={s.alt} className="h-full"><WhatsAppScreen /></div>}
+                {s.tap && i === active && <span key={`tap-${active}`} className="ps-tap" style={{ left: `${s.tap.x}%`, top: `${s.tap.y}%` }} aria-hidden />}
+              </div>
             </div>
           ))}
+        </div>
+        <div className={`absolute inset-x-0 bottom-0 z-10 flex h-[22px] items-start justify-center ${active === 0 ? "bg-[#ECE7DE]" : "bg-canvas"}`} aria-hidden>
+          <span className="h-[4px] w-[100px] rounded-full bg-ink/80" />
         </div>
       </div>
     </div>
