@@ -4,9 +4,10 @@ import "lenis/dist/lenis.css";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Logo, Seal } from "@/components/brand";
+import { HeroCard } from "@/components/HeroCard";
 import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
-import { daysLeft, stats } from "@/lib/derive";
+import { daysLeft } from "@/lib/derive";
 
 const GAZETTE = "https://www.meity.gov.in/static/uploads/2025/11/53450e6e5dc0bfa85ebd78686cadad39.pdf";
 const PIB = "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/nov/doc20251117695301.pdf";
@@ -49,7 +50,6 @@ function Section({ id, label, title, children, white }: { id?: string; label: st
 
 export default function Landing() {
   const db = useDB()!;
-  const st = stats(db);
   const [form, setForm] = useState({ name: "", role: "Principal", school: "", city: "", phone: "", size: "500 – 1,000" });
   const [sent, setSent] = useState(false);
 
@@ -95,33 +95,7 @@ export default function Landing() {
           <a href={GAZETTE} target="_blank" rel="noopener" className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold underline underline-offset-2">Official DPDP Rules 2025 (Gazette, MeitY) <ExternalLink className="h-3.5 w-3.5" /></a>
         </div>
 
-        <Link to="/app" className="group block rounded-2xl border border-line bg-white p-5 text-ink shadow-card transition-shadow hover:text-ink hover:shadow-lift">
-          <div className="mb-4 flex items-center justify-between">
-            <span className="font-mono text-[11px] text-muted-2">{db.school.slug}.sahmati.in · Overview</span>
-            <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-hover" />Live demo</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2.5">
-            {[["Consent", `${Math.round(st.cov * 100)}%`, "text-green"], ["Pending", String(st.pending), "text-amber-ink"], ["Readiness", `${Math.round((st.ready / st.checks.length) * 100)}%`, "text-ink"]].map(([l, v, c]) => (
-              <div key={l} className="rounded-lg border border-line p-3">
-                <div className="font-mono text-[10px] uppercase text-muted-2">{l}</div>
-                <div className={`text-2xl font-semibold tracking-[-0.02em] ${c}`}>{v}</div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-5 flex flex-col gap-2.5">
-            {st.bands.map((b) => (
-              <div key={b.name} className="grid grid-cols-[96px_1fr_36px] items-center gap-3 text-[13px]">
-                <span>{b.name}</span>
-                <span className="h-1.5 overflow-hidden rounded-full bg-track"><span className={`block h-full rounded-full ${b.pct < 0.8 ? "bg-amber" : "bg-brand-hover"}`} style={{ width: `${b.pct * 100}%` }} /></span>
-                <span className="text-right font-mono text-xs text-muted">{Math.round(b.pct * 100)}%</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-5 flex items-center justify-between border-t border-line pt-3.5 text-[13px]">
-            <span className="text-muted-2">Sample school with 30 students</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-green group-hover:text-green-hover">Open console <ArrowRight className="h-3.5 w-3.5" /></span>
-          </div>
-        </Link>
+        <HeroCard db={db} />
       </div>
 
       <div className="border-y border-line bg-white">
