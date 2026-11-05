@@ -34,12 +34,12 @@ function WhatsAppPreview() {
 export function ParentSteps() {
   return (
     <div className="flex flex-col gap-8">
-      <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <ol className="grid gap-x-8 gap-y-10 sm:grid-cols-2 2xl:grid-cols-4">
         {STEPS.map((s, i) => (
           <li key={s.title} className="flex flex-col gap-4">
-            <div className="flex h-[260px] items-center justify-center overflow-hidden rounded-xl border border-line bg-canvas">
+            <div className="flex h-[260px] items-center justify-center overflow-hidden rounded-xl border border-line bg-canvas p-3 lg:h-[320px] lg:p-5">
               {s.shot ? (
-                <img src={s.shot.src} width={s.shot.w} height={s.shot.h} alt={s.shot.alt} loading="lazy" decoding="async" className="h-auto max-h-full w-full object-contain" />
+                <img src={s.shot.src} width={s.shot.w} height={s.shot.h} alt={s.shot.alt} loading="lazy" decoding="async" className="h-auto max-h-full w-auto max-w-full rounded-lg object-contain" />
               ) : (
                 <WhatsAppPreview />
               )}
