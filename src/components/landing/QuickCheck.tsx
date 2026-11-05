@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
 import { QUESTIONS } from "@/pages/Audit";
@@ -24,14 +24,14 @@ export function QuickCheck({ onResult }: { onResult: (r: QuickResult) => void })
   const verdict = score >= 80 ? "Nearly ready" : score >= 50 ? "Partly ready" : "At risk";
   const tone = score >= 80 ? "text-green" : score >= 50 ? "text-amber-ink" : "text-danger";
 
-  const choose = (id: string, i: number) => {
-    const next = { ...ans, [id]: i };
-    setAns(next);
-    if (QS.every((q) => next[q.id] !== undefined)) {
-      const pts = QS.reduce((sum, q) => sum + POINTS[next[q.id]!]!, 0);
-      onResult({ score: Math.round((pts / (QS.length * 2)) * 100), gaps: QS.filter((q) => next[q.id]! > 0).map((q) => q.id) });
-    }
-  };
+  const choose = (id: string, i: number) => setAns((prev) => ({ ...prev, [id]: i }));
+
+  // Hand the finished result up to the audit form whenever the answers change.
+  useEffect(() => {
+    if (!done) return;
+    onResult({ score, gaps: gaps.map((q) => q.id) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ans]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">

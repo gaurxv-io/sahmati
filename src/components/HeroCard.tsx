@@ -32,7 +32,7 @@ export function HeroCard({ db, given, seen }: { db: DB; given: string[]; seen: b
   return (
     <Link to="/app" className="hero-card group block rounded-2xl border border-line bg-white p-5 text-ink shadow-card hover:text-ink hover:shadow-lift">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <span className="truncate text-[12px] font-medium text-muted-2">{db.school.name} · Consent register</span>
+        <span className="truncate text-[12px] font-medium text-muted-2">Consent register</span>
         <span className="flex shrink-0 items-center gap-1.5 text-[12px] text-muted-2">
           <span className="relative flex h-1.5 w-1.5">
             <span className="live-ping absolute inset-0 rounded-full bg-brand-hover" />
@@ -78,7 +78,7 @@ export function HeroCard({ db, given, seen }: { db: DB; given: string[]; seen: b
           </div>
         ) : (
           <div className="flex h-9 items-center gap-2 px-1 text-[12.5px] text-muted-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber" />Consent links sent on WhatsApp. {st.pending} parents yet to reply.
+            <span className="h-1.5 w-1.5 rounded-full bg-amber" />Links sent on WhatsApp. {st.pending} parents to reply.
           </div>
         )}
       </div>
