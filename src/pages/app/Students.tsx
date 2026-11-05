@@ -151,7 +151,7 @@ export default function Students() {
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line px-[18px] py-4">
             <div className="flex min-w-0 flex-col gap-1">
               <h2 className="text-[17px] font-semibold tracking-[-0.01em]">{scopeName(scope)}</h2>
-              <span className="text-[13px] text-muted-2">{scoped.length} students · {scopeDone} responded · {pending.length} pending</span>
+              <span className="text-[13px] text-muted-2">{scoped.length} {scoped.length === 1 ? "student" : "students"} · {scopeDone} responded · {pending.length} pending</span>
             </div>
             <div className="flex min-w-[160px] flex-1 items-center gap-3 sm:max-w-[260px]">
               <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-track"><span className={`block h-full rounded-full ${scopePct >= 80 ? "bg-brand-hover" : "bg-amber"}`} style={{ width: `${scopePct}%` }} /></span>
