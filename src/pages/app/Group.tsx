@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Download } from "lucide-react";
-import { Logo } from "@/components/brand";
+import { useNavigate } from "@tanstack/react-router";
+import { Download } from "lucide-react";
+import { PageHead } from "./Layout";
 import { loadGroup, openSchool, useDB, type GroupRow } from "@/lib/store";
 import { fmtDate } from "@/lib/derive";
-import { downloadText } from "./app/Ledger";
+import { downloadText } from "./Ledger";
 
 type Key = "name" | "students" | "pct" | "pending" | "openRequests" | "openBreaches" | "met" | "lastActivity";
 const COLS: [Key, string][] = [["name", "School"], ["students", "Students"], ["pct", "Consent"], ["pending", "Pending"], ["openRequests", "Open requests"], ["openBreaches", "Open breaches"], ["met", "Readiness"], ["lastActivity", "Last activity"]];
@@ -30,18 +30,14 @@ export default function Group() {
     rows.map((r) => [`"${r.name}"`, `"${r.city}"`, r.students, pct(r), r.pending, r.openRequests, r.overdue, r.openBreaches, r.met, r.steps, r.lastActivity ?? ""].join(",")).join("\n"));
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-line bg-white"><div className="mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3.5"><Logo /><span className="ml-auto font-mono text-[11px] text-muted-2">GROUP VIEW</span></div></header>
-      <main className="mx-auto flex max-w-[1180px] flex-col gap-5 px-4 py-8">
-        <Link to="/app" className="btn btn-ghost btn-sm w-fit"><ArrowLeft className="h-3.5 w-3.5" />{db.school.name}</Link>
+    <>
         {g === undefined && <p className="py-16 text-center text-muted-2">Loading…</p>}
         {g === null && <div className="panel p-6 text-center text-muted-2">This school isn't part of a group you can see.</div>}
         {g && (
           <>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div className="flex flex-col gap-2"><span className="eyebrow">09 · School group</span><h1 className="text-[26px] font-semibold leading-tight tracking-[-0.03em]">{g.name}</h1><p className="text-muted">{rows.length} schools. Click a school to open its console.</p>{g.joinCode && <p className="font-mono text-[11.5px] text-muted-2">GROUP CODE · {g.joinCode.toUpperCase()}</p>}</div>
+            <PageHead n="09" label="Group view" title={g.name} desc={`${rows.length} schools. Click a school to open its console.${g.joinCode ? ` Group code ${g.joinCode.toUpperCase()}.` : ""}`}>
               <button className="btn" onClick={exportCsv}><Download className="h-4 w-4" />Export CSV</button>
-            </div>
+            </PageHead>
             <div className="panel min-w-0 overflow-x-auto">
               <table className="w-full border-collapse text-[13px]">
                 <thead><tr>{COLS.map(([k, l]) => <th key={k} className="th"><button className="font-[inherit] uppercase hover:text-ink" onClick={() => setSort({ k, desc: sort.k === k ? !sort.desc : k !== "name" })}>{l}{sort.k === k ? (sort.desc ? " ↓" : " ↑") : ""}</button></th>)}</tr></thead>
@@ -67,7 +63,6 @@ export default function Group() {
             </div>
           </>
         )}
-      </main>
-    </div>
+    </>
   );
 }

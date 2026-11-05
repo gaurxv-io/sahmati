@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAccessLogRouteImport } from './routes/app.access-log'
 import { Route as AppBreachRouteImport } from './routes/app.breach'
+import { Route as AppGroupRouteImport } from './routes/app.group'
 import { Route as AppLedgerRouteImport } from './routes/app.ledger'
 import { Route as AppReportRouteImport } from './routes/app.report'
 import { Route as AppRequestsRouteImport } from './routes/app.requests'
@@ -69,6 +70,11 @@ const AppAccessLogRoute = AppAccessLogRouteImport.update({
 const AppBreachRoute = AppBreachRouteImport.update({
   id: '/breach',
   path: '/breach',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGroupRoute = AppGroupRouteImport.update({
+  id: '/group',
+  path: '/group',
   getParentRoute: () => AppRoute,
 } as any)
 const AppLedgerRoute = AppLedgerRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/app/access-log': typeof AppAccessLogRoute
   '/app/breach': typeof AppBreachRoute
+  '/app/group': typeof AppGroupRoute
   '/app/ledger': typeof AppLedgerRoute
   '/app/report': typeof AppReportRoute
   '/app/requests': typeof AppRequestsRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/app/access-log': typeof AppAccessLogRoute
   '/app/breach': typeof AppBreachRoute
+  '/app/group': typeof AppGroupRoute
   '/app/ledger': typeof AppLedgerRoute
   '/app/report': typeof AppReportRoute
   '/app/requests': typeof AppRequestsRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/app/access-log': typeof AppAccessLogRoute
   '/app/breach': typeof AppBreachRoute
+  '/app/group': typeof AppGroupRoute
   '/app/ledger': typeof AppLedgerRoute
   '/app/report': typeof AppReportRoute
   '/app/requests': typeof AppRequestsRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/app/access-log'
     | '/app/breach'
+    | '/app/group'
     | '/app/ledger'
     | '/app/report'
     | '/app/requests'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/app/access-log'
     | '/app/breach'
+    | '/app/group'
     | '/app/ledger'
     | '/app/report'
     | '/app/requests'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/app/access-log'
     | '/app/breach'
+    | '/app/group'
     | '/app/ledger'
     | '/app/report'
     | '/app/requests'
@@ -346,6 +358,13 @@ declare module '@tanstack/react-router' {
       path: '/breach'
       fullPath: '/app/breach'
       preLoaderRoute: typeof AppBreachRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/group': {
+      id: '/app/group'
+      path: '/group'
+      fullPath: '/app/group'
+      preLoaderRoute: typeof AppGroupRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/ledger': {
@@ -445,6 +464,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAccessLogRoute: typeof AppAccessLogRoute
   AppBreachRoute: typeof AppBreachRoute
+  AppGroupRoute: typeof AppGroupRoute
   AppLedgerRoute: typeof AppLedgerRoute
   AppReportRoute: typeof AppReportRoute
   AppRequestsRoute: typeof AppRequestsRoute
@@ -459,6 +479,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAccessLogRoute: AppAccessLogRoute,
   AppBreachRoute: AppBreachRoute,
+  AppGroupRoute: AppGroupRoute,
   AppLedgerRoute: AppLedgerRoute,
   AppReportRoute: AppReportRoute,
   AppRequestsRoute: AppRequestsRoute,

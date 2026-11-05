@@ -71,7 +71,7 @@ export function GroupPanel() {
       {db.school.groupId ? (
         <>
           <p className="text-[13px] text-muted">This school belongs to a group. Group admins see every school's numbers side by side.</p>
-          <Link to="/group" className="btn w-fit"><Users className="h-4 w-4" />Open group view</Link>
+          <Link to="/app/group" className="btn w-fit"><Users className="h-4 w-4" />Open group view</Link>
         </>
       ) : db.school.isDemo || !admin ? (
         <p className="text-[13px] text-muted-2">Not part of a school group.</p>
