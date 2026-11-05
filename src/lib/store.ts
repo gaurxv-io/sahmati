@@ -284,10 +284,12 @@ export const actions = {
     ok(await supabase.from("students").update({ sent_at: now() }).eq("id", sid));
     return append([["sent", sid, "Consent link sent on WhatsApp"]]);
   }),
-  remindPending: () => write(async () => {
-    const pending = Object.values(db().students).filter((s) => s.status === "pending" || s.status === "renewal").map((s) => s.id);
+  /** Logs a reminder to pending parents: the whole school, or only `only` (one class or section, named by `where`). */
+  remindPending: (only?: string[], where?: string) => write(async () => {
+    const scope = only ? new Set(only) : null;
+    const pending = Object.values(db().students).filter((s) => (s.status === "pending" || s.status === "renewal") && (!scope || scope.has(s.id))).map((s) => s.id);
     if (pending.length) ok(await supabase.from("students").update({ sent_at: now() }).in("id", pending));
-    return append([["remind", "-", `Reminder sent to ${pending.length} pending parents`]]);
+    return append([["remind", "-", `Reminder sent to ${pending.length} pending parents${where ? ` in ${where}` : ""}`]]);
   }),
   /** Parent consent: validated and written by the server in one step. */
   /** Asks the server for a code. Demo school (or no SMS provider): the code comes back to show on screen. */

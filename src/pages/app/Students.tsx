@@ -4,20 +4,20 @@ import { Check, Eye, FileSignature, FileText, MessageCircle, RefreshCw, Search, 
 import { Pill } from "@/components/brand";
 import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
-import { BANDS, band, can, clsLabel, maskPhone, olderNotice, shortDate, sortedStudents, stats, waHref } from "@/lib/derive";
+import { can, clsLabel, maskPhone, olderNotice, shortDate, sortedStudents, waHref } from "@/lib/derive";
 import type { ConsentStatus, Lang } from "@/lib/types";
 import { PageHead } from "./Layout";
 import { LANGS, isLang } from "@/lib/i18n";
 import PaperConsent from "./PaperConsent";
 import AddStudent from "./AddStudent";
+import { ClassSelect, ClassTree, groupStudents, inScope, scopeName, type Scope } from "./ClassTree";
 
 type Filter = "all" | ConsentStatus;
-type SP = { status?: string; remind?: string; import?: string; drive?: string; add?: string };
+type SP = { status?: string; remind?: string; import?: string; drive?: string; add?: string; cls?: string; sec?: string };
 type Drive = "year" | "admissions" | "notice";
 
 export default function Students() {
   const db = useDB()!;
-  const st = stats(db);
   const params = useSearch({ from: "/app/students" }) as SP;
   const navigate = useNavigate({ from: "/app/students" });
   const setParams = (p: SP) => navigate({ search: p, replace: true });
@@ -27,15 +27,23 @@ export default function Students() {
   const [paperSid, setPaperSid] = useState<string | null>(null);
   const [drive, setDrive] = useState<Drive>("year");
   const [since, setSince] = useState("2026-10-01");
-  const [bandSel, setBand] = useState("all");
   const [q, setQ] = useState("");
   const [csv, setCsv] = useState("");
 
   const setParam = (k: keyof SP, v: string | null) => { const p: SP = { ...params }; if (v) p[k] = v; else delete p[k]; setParams(p); };
   const openDrawer = (d: "remind" | "import" | "drive" | "add" | null) => { const p: SP = { ...params }; delete p.remind; delete p.import; delete p.drive; delete p.add; if (d) p[d] = "1"; setParams(p); };
 
-  const list = useMemo(() => sortedStudents(db).filter((s) => (filter === "all" || s.status === filter) && (bandSel === "all" || band(s.cls) === bandSel) && (!q || `${s.name} ${s.parent}`.toLowerCase().includes(q.toLowerCase()))), [db, filter, bandSel, q]);
-  const pending = sortedStudents(db).filter((s) => s.status === "pending" || s.status === "renewal");
+  const scope: Scope = params.cls ? { cls: params.cls, ...(params.sec ? { sec: params.sec } : {}) } : {};
+  const pickScope = (s: Scope) => { const p: SP = { ...params }; delete p.cls; delete p.sec; if (s.cls) p.cls = s.cls; if (s.sec) p.sec = s.sec; setParams(p); };
+  const everyone = useMemo(() => sortedStudents(db), [db]);
+  const groups = useMemo(() => groupStudents(everyone), [everyone]);
+  const scoped = useMemo(() => everyone.filter((s) => inScope(s, scope)), [everyone, scope.cls, scope.sec]);
+  const list = useMemo(() => scoped.filter((s) => (filter === "all" || s.status === filter) && (!q || `${s.name} ${s.parent}`.toLowerCase().includes(q.toLowerCase()))), [scoped, filter, q]);
+  const pending = scoped.filter((s) => s.status === "pending" || s.status === "renewal");
+  const count = (k: ConsentStatus) => scoped.filter((s) => s.status === k).length;
+  const scopeDone = scoped.filter((s) => s.status !== "pending").length;
+  const scopePct = scoped.length ? Math.round((scopeDone / scoped.length) * 100) : 0;
+  const where = scope.cls ? scopeName(scope) : undefined;
   const all = Object.values(db.students);
   const sinceMs = Date.parse(since + "T00:00:00+05:30");
   const driveCount = drive === "year" ? all.length : drive === "admissions" ? all.filter((s) => s.createdAt && Date.parse(s.createdAt) >= sinceMs).length : olderNotice(db).length;
@@ -102,8 +110,8 @@ export default function Students() {
       {drawer === "remind" && (
         <div className="rounded-xl border border-line bg-white shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-3 px-[18px] pt-4">
-            <h2 className="text-base font-semibold">Remind {pending.length} parents{st.renewal > 0 && <span className="font-normal text-muted-2"> · {st.renewal} renewals</span>}</h2>
-            <div className="flex gap-2"><button className="btn btn-ghost btn-sm" onClick={() => openDrawer(null)}><X className="h-3.5 w-3.5" />Close</button><button className="btn btn-primary btn-sm" onClick={async () => { await actions.remindPending(); openDrawer(null); toast(`Reminder logged for ${pending.length} parents`); }}><Check className="h-3.5 w-3.5" />Mark all reminded</button></div>
+            <h2 className="text-base font-semibold">Remind {pending.length} parents{where ? ` in ${where}` : ""}{count("renewal") > 0 && <span className="font-normal text-muted-2"> · {count("renewal")} renewals</span>}</h2>
+            <div className="flex gap-2"><button className="btn btn-ghost btn-sm" onClick={() => openDrawer(null)}><X className="h-3.5 w-3.5" />Close</button><button className="btn btn-primary btn-sm" onClick={async () => { await actions.remindPending(scope.cls ? scoped.map((s) => s.id) : undefined, where); openDrawer(null); toast(`Reminder logged for ${pending.length} parents${where ? ` in ${where}` : ""}`); }}><Check className="h-3.5 w-3.5" />Mark all reminded</button></div>
           </div>
           <p className="px-[18px] py-3 text-[12.5px] text-muted-2">Each button opens WhatsApp with a ready message in the parent's language and their personal consent link. With the WhatsApp Business API connected, this becomes one click for the whole list.</p>
           <div className="max-h-[300px] overflow-auto border-t border-line">
@@ -113,7 +121,7 @@ export default function Students() {
                 <a className="btn btn-sm" target="_blank" rel="noopener" href={waHref(db, s, true)}><MessageCircle className="h-3.5 w-3.5" />WhatsApp</a>
               </div>
             ))}
-            {!pending.length && <p className="px-[18px] py-6 text-center text-muted-2">Every parent has responded.</p>}
+            {!pending.length && <p className="px-[18px] py-6 text-center text-muted-2">Every parent{where ? ` in ${where}` : ""} has responded.</p>}
           </div>
         </div>
       )}
@@ -132,17 +140,36 @@ export default function Students() {
 
       {paperSid && db.students[paperSid] && <PaperConsent s={db.students[paperSid]} onClose={() => setPaperSid(null)} />}
 
+      <div className="grid items-start gap-4 lg:grid-cols-[232px_minmax(0,1fr)]">
+      <aside className="panel hidden max-h-[calc(100vh-96px)] overflow-y-auto p-2 lg:sticky lg:top-[76px] lg:block">
+        <ClassTree groups={groups} total={everyone.length} scope={scope} onPick={pickScope} />
+      </aside>
+      <div className="flex min-w-0 flex-col gap-3">
+      <div className="lg:hidden"><ClassSelect groups={groups} total={everyone.length} scope={scope} onPick={pickScope} /></div>
       <div className="panel">
+        {scope.cls && (
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line px-[18px] py-4">
+            <div className="flex min-w-0 flex-col gap-1">
+              <h2 className="text-[17px] font-semibold tracking-[-0.01em]">{scopeName(scope)}</h2>
+              <span className="text-[13px] text-muted-2">{scoped.length} students · {scopeDone} responded · {pending.length} pending</span>
+            </div>
+            <div className="flex min-w-[160px] flex-1 items-center gap-3 sm:max-w-[260px]">
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-track"><span className={`block h-full rounded-full ${scopePct >= 80 ? "bg-brand-hover" : "bg-amber"}`} style={{ width: `${scopePct}%` }} /></span>
+              <b className="font-mono text-[12.5px] tabular-nums">{scopePct}%</b>
+            </div>
+            <div className="flex flex-wrap gap-2 sm:ml-auto">
+              {perm.write && pending.length > 0 && <button className="btn btn-primary btn-sm" onClick={() => openDrawer("remind")}><MessageCircle className="h-3.5 w-3.5" />Remind {pending.length} pending</button>}
+              <button className="btn btn-ghost btn-sm" onClick={() => pickScope({})}><X className="h-3.5 w-3.5" />All students</button>
+            </div>
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-2 border-b border-line px-3.5 py-3">
           <div role="group" aria-label="Status" className="inline-flex max-w-full overflow-x-auto gap-[3px] rounded-lg border border-line bg-canvas p-[3px]">
-            {seg("all", "All", st.total)}{seg("given", "Given", st.given)}{seg("pending", "Pending", st.pending)}{seg("withdrawn", "Withdrawn", st.withdrawn)}{st.renewal > 0 && seg("renewal", "Renewal", st.renewal)}
+            {seg("all", "All", scoped.length)}{seg("given", "Given", count("given"))}{seg("pending", "Pending", count("pending"))}{seg("withdrawn", "Withdrawn", count("withdrawn"))}{count("renewal") > 0 && seg("renewal", "Renewal", count("renewal"))}
           </div>
-          <select id="band" aria-label="Class group" className="field" value={bandSel} onChange={(e) => setBand(e.target.value)}>
-            <option value="all">All classes</option>{BANDS.map((b) => <option key={b}>{b}</option>)}
-          </select>
           <div className="relative w-full sm:ml-auto sm:w-60">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-3" />
-            <input id="q" type="search" placeholder="Search student or parent" className="field w-full pl-8" value={q} onChange={(e) => setQ(e.target.value)} />
+            <input id="q" type="search" placeholder={scope.cls ? `Search in ${scopeName(scope)}` : "Search student or parent"} className="field w-full pl-8" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -167,10 +194,12 @@ export default function Students() {
                   </tr>
                 );
               })}
-              {!list.length && <tr><td colSpan={6} className="td py-9 text-center text-muted-2">No students match these filters.</td></tr>}
+              {!list.length && <tr><td colSpan={6} className="td py-9 text-center text-muted-2">No students in {scopeName(scope)} match these filters.{scope.cls && <> <button className="font-semibold text-green hover:underline" onClick={() => pickScope({})}>Search all students</button></>}</td></tr>}
             </tbody>
           </table>
         </div>
+      </div>
+      </div>
       </div>
     </>
   );
