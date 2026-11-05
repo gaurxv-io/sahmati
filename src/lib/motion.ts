@@ -36,7 +36,7 @@ export function useCountUp(target: number, active: boolean, ms = 900) {
     const begin = from.current;
     let frame = 0;
     const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / ms);
+      const t = Math.min(1, Math.max(0, (now - start) / ms));
       const value = begin + (target - begin) * (1 - (1 - t) ** 3);
       from.current = value;
       setShown(value);
