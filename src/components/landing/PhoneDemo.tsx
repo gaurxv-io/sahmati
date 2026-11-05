@@ -40,7 +40,7 @@ export function PhoneDemo({ scene, student, school, n }: { scene: Scene; student
           <ChevronLeft className="h-4 w-4 text-muted" aria-hidden />
           <span className="grid h-8 w-8 place-items-center rounded-full bg-green text-[11px] font-bold text-white">{school.split(/\s+/).map((w) => w[0]).slice(0, 2).join("")}</span>
           <span className="flex min-w-0 flex-col leading-tight">
-            <b className="truncate text-[12.5px] font-semibold text-ink">{school}</b>
+            <b className="truncate text-[12px] font-semibold text-ink">{school}</b>
             <span className="text-[10.5px] text-muted-2">{scene === "typing" ? "typing…" : "School office"}</span>
           </span>
         </div>
@@ -70,7 +70,7 @@ export function PhoneDemo({ scene, student, school, n }: { scene: Scene; student
                 <div key="consent" className="feed-in flex flex-1 flex-col gap-2.5">
                   <b className="text-[15px] font-semibold leading-tight tracking-[-0.01em] text-ink">Consent for {child}'s data</b>
                   <span className="text-[11px] text-muted-2">{school} · notice v2</span>
-                  {([["School records", "Required to study at the school", true, false], ["Photos on the school website", "Optional", photos, true], ["Newsletter and events", "Optional", !photos, false]] as const).map(([label, sub, on, anim]) => (
+                  {([["School records", "Required", true, false], ["Photos on website", "Optional", photos, true], ["Newsletter", "Optional", !photos, false]] as const).map(([label, sub, on, anim]) => (
                     <span key={label} className="flex items-center justify-between gap-3 rounded-lg border border-line px-3 py-2">
                       <span className="flex flex-col"><b className="text-[12px] font-semibold text-ink">{label}</b><span className="text-[10.5px] text-muted-2">{sub}</span></span>
                       <Switch on={on} animate={anim && on} />
@@ -99,7 +99,7 @@ export function PhoneDemo({ scene, student, school, n }: { scene: Scene; student
                   <b className="feed-in text-[15.5px] font-semibold text-ink">Consent recorded</b>
                   <span className="feed-in text-[11.5px] leading-snug text-muted">Thank you, {parent} ji. Change or withdraw it anytime from the same link.</span>
                   <ul className="feed-in mt-1 w-full divide-y divide-line rounded-lg border border-line text-left" style={{ animationDelay: "120ms" }}>
-                    {([["School records", true], ["Photos on the website", photos], ["Newsletter and events", !photos]] as const).map(([label, on]) => (
+                    {([["School records", true], ["Photos on website", photos], ["Newsletter", !photos]] as const).map(([label, on]) => (
                       <li key={label} className="flex items-center justify-between px-3 py-1.5 text-[11.5px]">
                         <span className="text-ink-2">{label}</span>
                         <span className={on ? "font-semibold text-green" : "text-muted-3"}>{on ? "Yes" : "No"}</span>
