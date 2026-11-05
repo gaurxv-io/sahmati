@@ -83,7 +83,7 @@ export default function AppLayout() {
             )}
           </div>
         </div>
-        <main className="flex w-full max-w-[1180px] flex-col gap-5 px-4 pb-20 pt-7 sm:px-7">
+        <main className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 px-4 pb-20 pt-7 sm:px-7 2xl:px-10">
           <Outlet />
         </main>
       </div>
