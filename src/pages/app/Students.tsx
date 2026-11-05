@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { Check, Eye, FileSignature, FileText, MessageCircle, RefreshCw, Search, Upload, X } from "lucide-react";
+import { Check, Eye, FileSignature, FileText, MessageCircle, RefreshCw, Search, Upload, UserPlus, X } from "lucide-react";
 import { Pill } from "@/components/brand";
 import { toast } from "@/components/toast";
 import { actions, useDB } from "@/lib/store";
@@ -9,9 +9,10 @@ import type { ConsentStatus, Lang } from "@/lib/types";
 import { PageHead } from "./Layout";
 import { LANGS, isLang } from "@/lib/i18n";
 import PaperConsent from "./PaperConsent";
+import AddStudent from "./AddStudent";
 
 type Filter = "all" | ConsentStatus;
-type SP = { status?: string; remind?: string; import?: string; drive?: string };
+type SP = { status?: string; remind?: string; import?: string; drive?: string; add?: string };
 type Drive = "year" | "admissions" | "notice";
 
 export default function Students() {
@@ -21,7 +22,7 @@ export default function Students() {
   const navigate = useNavigate({ from: "/app/students" });
   const setParams = (p: SP) => navigate({ search: p, replace: true });
   const filter = (params.status as Filter) || "all";
-  const drawer = params.remind ? "remind" : params.import ? "import" : params.drive ? "drive" : null;
+  const drawer = params.remind ? "remind" : params.import ? "import" : params.drive ? "drive" : params.add ? "add" : null;
   const perm = can(db);
   const [paperSid, setPaperSid] = useState<string | null>(null);
   const [drive, setDrive] = useState<Drive>("year");
@@ -31,7 +32,7 @@ export default function Students() {
   const [csv, setCsv] = useState("");
 
   const setParam = (k: keyof SP, v: string | null) => { const p: SP = { ...params }; if (v) p[k] = v; else delete p[k]; setParams(p); };
-  const openDrawer = (d: "remind" | "import" | "drive" | null) => { const p: SP = { ...params }; delete p.remind; delete p.import; delete p.drive; if (d) p[d] = "1"; setParams(p); };
+  const openDrawer = (d: "remind" | "import" | "drive" | "add" | null) => { const p: SP = { ...params }; delete p.remind; delete p.import; delete p.drive; delete p.add; if (d) p[d] = "1"; setParams(p); };
 
   const list = useMemo(() => sortedStudents(db).filter((s) => (filter === "all" || s.status === filter) && (bandSel === "all" || band(s.cls) === bandSel) && (!q || `${s.name} ${s.parent}`.toLowerCase().includes(q.toLowerCase()))), [db, filter, bandSel, q]);
   const pending = sortedStudents(db).filter((s) => s.status === "pending" || s.status === "renewal");
@@ -69,11 +70,14 @@ export default function Students() {
     <>
       <PageHead n="02" label="Students" title="Consent register" desc="Every student, the parent we reach, and what they agreed to. Optional consents are tracked separately from school records.">
         {perm.write && <>
+          <button className="btn" onClick={() => openDrawer(drawer === "add" ? null : "add")}><UserPlus className="h-4 w-4" />Add student</button>
           <button className="btn" onClick={() => openDrawer(drawer === "import" ? null : "import")}><Upload className="h-4 w-4" />Import from Excel</button>
           <button className="btn" onClick={() => openDrawer(drawer === "drive" ? null : "drive")}><RefreshCw className="h-4 w-4" />New consent drive</button>
           <button className="btn btn-primary" onClick={() => openDrawer(drawer === "remind" ? null : "remind")}><MessageCircle className="h-4 w-4" />Remind pending</button>
         </>}
       </PageHead>
+
+      {drawer === "add" && <AddStudent db={db} onClose={() => openDrawer(null)} />}
 
       {drawer === "drive" && (
         <div className="flex flex-col gap-3 rounded-xl border border-line bg-white p-[18px] shadow-card">

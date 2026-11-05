@@ -33,7 +33,7 @@ export const DEADLINE = Date.parse("2027-05-13T00:00:00+05:30");
 export const RULES_NOTIFIED = Date.parse("2025-11-13T00:00:00+05:30");
 export const SLA_DAYS = 7;
 export const BANDS = ["Nursery – UKG", "Class 1 – 5", "Class 6 – 8", "Class 9 – 12"] as const;
-const CLASS_ORDER = ["Nursery", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+export const CLASS_ORDER = ["Nursery", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
 const TZ = { timeZone: "Asia/Kolkata" } as const;
 export const fmtTime = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false, ...TZ });
