@@ -79,7 +79,8 @@ function Phone({ active }: { active: number }) {
             <div key={s.title} className={`ps-slide absolute inset-x-0 bottom-0 ${i === 0 ? "top-0" : "top-[25px] px-1.5 pt-1"} ${i === active ? "ps-slide-on" : i < active ? "ps-slide-past" : ""}`} aria-hidden={i !== active}>
               <div className={`relative h-full ${s.shot ? "mx-auto w-fit max-w-full" : ""}`}>
                 {s.shot
-                  ? <img src={img(s.shot)} alt={s.alt} width={600} height={1246} loading="lazy" decoding="async" className="block h-full w-auto max-w-full object-contain object-top" />
+                  ? <><img src={img(s.shot)} alt={s.alt} width={600} height={1246} loading="lazy" decoding="async" className="block h-full w-auto max-w-full object-contain object-top" />
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-canvas to-transparent" aria-hidden /></>
                   : <div role="img" aria-label={s.alt} className="h-full"><WhatsAppScreen /></div>}
                 {s.tap && i === active && <span key={`tap-${active}`} className="ps-tap" style={{ left: `${s.tap.x}%`, top: `${s.tap.y}%` }} aria-hidden />}
               </div>
