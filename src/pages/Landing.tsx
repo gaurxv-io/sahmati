@@ -69,7 +69,7 @@ export default function Landing() {
         <div className="mx-auto flex max-w-[1200px] items-center gap-6 px-4 py-3.5 sm:px-8">
           <Logo />
           <nav className="ml-auto hidden items-center gap-6 text-sm lg:flex" aria-label="Main">
-            {[["#why", "Why DPDP"], ["#how", "How it works"], ["#parents", "For parents"], ["#product", "Product"], ["#pricing", "Pricing"], ["#faq", "FAQ"]].map(([h, l]) => (
+            {[["#why", "Why DPDP"], ["#how", "How it works"], ["#product", "Product"], ["#parents", "For parents"], ["#pricing", "Pricing"], ["#faq", "FAQ"]].map(([h, l]) => (
               <a key={h} href={h} className="text-muted hover:text-ink">{l}</a>
             ))}
             <Link to="/audit" className="text-muted hover:text-ink">Self-audit</Link>
